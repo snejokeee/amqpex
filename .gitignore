@@ -1,0 +1,33 @@
+# Gradle
+.gradle
+build/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Kotlin
+*.kotlin_metadata
+*.kotlincache
+
+# Logs
+*.log
+.log
+
+# Temporary files
+*.tmp
+*.bak
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Local Gradle properties (for credentials, etc.)
+gradle.properties
