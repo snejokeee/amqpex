@@ -1,13 +1,18 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
-    kotlin("jvm") version "2.0.20"
+    `java-library`
     id("io.spring.dependency-management") version "1.1.7"
 }
 
 group = "dev.alubenets"
 version = "1.0.0-SNAPSHOT"
 description = "Spring AMQP Extensions"
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+    withSourcesJar()
+    withJavadocJar()
+}
 
 repositories {
     mavenCentral()
@@ -22,26 +27,17 @@ dependencyManagement {
 dependencies {
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
-    implementation(kotlin("stdlib"))
-    implementation(kotlin("reflect"))
-
     implementation("org.springframework.boot:spring-boot-autoconfigure")
     implementation("org.springframework.amqp:spring-amqp")
     implementation("org.springframework:spring-context")
 
-    testImplementation(kotlin("test"))
     testImplementation("org.springframework.amqp:spring-rabbit-test")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.2")
-    testImplementation("org.assertj:assertj-core:3.25.3")
+    testImplementation("org.mockito:mockito-core:5.14.2")
+    testImplementation("org.mockito:mockito-junit-jupiter:5.14.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-api")
+    testImplementation("org.assertj:assertj-core")
 
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.2")
-}
-
-kotlin {
-    compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_17)
-    }
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 }
 
 tasks.test {
