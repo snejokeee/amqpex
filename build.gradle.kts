@@ -1,17 +1,17 @@
 plugins {
     `java-library`
     id("io.spring.dependency-management") version "1.1.7"
+    id("com.vanniktech.maven.publish") version "0.34.0"
 }
 
 group = "dev.alubenets"
 version = "0.0.1-SNAPSHOT"
-description = "Spring AMQP Extensions"
+description =
+    "A Spring AMQP Extensions library providing useful utilities and enhancements for RabbitMQ in Spring applications."
 
 java {
     sourceCompatibility = JavaVersion.VERSION_21
     targetCompatibility = JavaVersion.VERSION_21
-    withSourcesJar()
-    withJavadocJar()
 }
 
 repositories {
@@ -46,4 +46,46 @@ dependencies {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+tasks.withType<GenerateModuleMetadata>().configureEach {
+    dependsOn(tasks.named("plainJavadocJar"))
+}
+
+mavenPublishing {
+    configure(
+        com.vanniktech.maven.publish.JavaLibrary(
+            javadocJar = com.vanniktech.maven.publish.JavadocJar.Javadoc(),
+            sourcesJar = true
+        )
+    )
+    publishToMavenCentral()
+    signAllPublications()
+    coordinates(project.group.toString(), project.name, project.version.toString())
+    pom {
+        name.set(project.name)
+        description.set(project.description)
+        url.set("https://github.com/snejokeee/amqpex")
+        inceptionYear.set("2025")
+        licenses {
+            license {
+                name.set("MIT License")
+                url.set("https://opensource.org/licenses/MIT")
+                distribution.set("repo")
+            }
+        }
+        developers {
+            developer {
+                id.set("snejokeee")
+                name.set("Aleksey Lubenets")
+                email.set("an.lubenets@gmail.com")
+                url.set("https://alubenets.dev")
+            }
+        }
+        scm {
+            connection.set("scm:git:git://github.com/snejokeee/amqpex.git")
+            developerConnection.set("scm:git:ssh://github.com/snejokeee/amqpex.git")
+            url.set("https://github.com/snejokeee/amqpex")
+        }
+    }
 }
