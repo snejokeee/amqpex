@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "dev.alubenets"
-version = "1.0.0-SNAPSHOT"
+version = "0.0.1-SNAPSHOT"
 description = "Spring AMQP Extensions"
 
 java {
