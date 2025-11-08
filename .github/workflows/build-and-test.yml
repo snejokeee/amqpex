@@ -8,6 +8,7 @@ on:
 
 jobs:
   build:
+    name: Build and Test
     runs-on: ubuntu-latest
 
     steps:
@@ -29,19 +30,3 @@ jobs:
 
       - name: Run tests
         run: ./gradlew test --no-daemon
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: build/reports/tests/test/
-          retention-days: 14
-
-      - name: Upload code coverage
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: code-coverage-report
-          path: build/reports/jacoco/test/
-          retention-days: 14

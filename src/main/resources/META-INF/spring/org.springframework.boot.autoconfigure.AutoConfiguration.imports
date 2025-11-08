@@ -1,0 +1,2 @@
+dev.alubenets.amqpex.AmqpexAutoConfiguration
+dev.alubenets.amqpex.logging.LoggingAutoConfiguration
