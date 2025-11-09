@@ -14,6 +14,14 @@ This library provides useful extensions and enhancements for Spring AMQP, aiming
 - **Robust Processing**: Handles character encoding properly and gracefully handles logging failures without disrupting message flow
 - **Performance Conscious**: Runs with the highest precedence to capture original message state while only logging when debug level is enabled
 
+### 2. Outgoing Message Logging
+- **Automatic Logging**: Logs exchange, routing key, message properties, and message body for readable formats (JSON, XML, text) for outgoing messages
+- **Configuration Options**:
+  - `amqpex.logging.outgoing.enabled` (default: true) - Enable/disable the logging feature
+  - `amqpex.logging.outgoing.maxBodySize` (default: 1000) - Maximum body size to log (prevents log flooding)
+- **Robust Processing**: Handles character encoding properly and gracefully handles logging failures without disrupting message flow
+- **Performance Conscious**: Runs with the lowest precedence to capture final message state before sending while only logging when debug level is enabled
+
 ## Getting Started
 
 ### Adding the Dependency
@@ -22,12 +30,15 @@ The library will be available through Maven Central once published. (Publication
 
 ### Basic Configuration
 
-To enable incoming message logging with default settings:
+To enable both incoming and outgoing message logging with default settings:
 
 ```yaml
 amqpex:
   logging:
     incoming:
+      enabled: true
+      max-body-size: 1000
+    outgoing:
       enabled: true
       max-body-size: 1000
 ```
@@ -37,6 +48,8 @@ Or via properties:
 ```properties
 amqpex.logging.incoming.enabled=true
 amqpex.logging.incoming.max-body-size=1000
+amqpex.logging.outgoing.enabled=true
+amqpex.logging.outgoing.max-body-size=1000
 ```
 
 The library uses Spring Boot's autoconfiguration, so simply adding it to your project will enable the logging functionality automatically if the conditions are met.
@@ -47,7 +60,8 @@ The library uses a well-designed abstract class pattern with Java 21's sealed cl
 
 - `LoggingMessagePostProcessor` (sealed abstract class) - Provides common functionality for message logging
 - `IncomingMessageLogger` - Concrete implementation for incoming message logging
-- The architecture is designed for future extensibility (e.g., outgoing message logging)
+- `OutgoingMessageLogger` - Concrete implementation for outgoing message logging
+- The architecture is designed for future extensibility
 
 ## Planned Features
 
