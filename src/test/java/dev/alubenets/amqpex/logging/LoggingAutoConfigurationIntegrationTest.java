@@ -32,7 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(
     classes = {
         AmqpexAutoConfiguration.class,
-        RabbitAutoConfiguration.class, // Provides rabbitTemplate, rabbitListenerContainerFactory
+        RabbitAutoConfiguration.class,
         LoggingAutoConfiguration.class,
         LoggingAutoConfigurationIntegrationTest.TestConfig.class
     }
@@ -45,16 +45,13 @@ class LoggingAutoConfigurationIntegrationTest {
     @TestConfiguration
     static class TestConfig {
 
-        // Create a container that will use the auto-configured factory
-        // Spring will look for ContainerCustomizer beans and apply them during this bean's setup
         @Bean("testContainer")
         public SimpleMessageListenerContainer testContainer(
-            SimpleRabbitListenerContainerFactory autoConfiguredFactory) { // This will inject the primary factory from RabbitAutoConfiguration
+            SimpleRabbitListenerContainerFactory autoConfiguredFactory) {
             SimpleMessageListenerContainer container = autoConfiguredFactory.createListenerContainer();
             container.setAutoStartup(false);
             return container;
         }
-        // Do not define a RabbitTemplate here, rely on the auto-configured one
     }
 
     @Nested
@@ -73,26 +70,32 @@ class LoggingAutoConfigurationIntegrationTest {
         @Autowired
         private SimpleMessageListenerContainer testContainer;
 
-        @Autowired // Rely on the auto-configured bean named 'rabbitTemplate'
+        @Autowired
         private RabbitTemplate rabbitTemplate;
 
+        /**
+         * Tests that the incoming logging container customizer bean is created when the incoming logging feature is enabled.
+         */
         @Test
         void shouldCreateIncomingLoggingContainerCustomizerBean() {
             assertThat(incomingLoggingContainerCustomizer).isNotNull();
         }
 
+        /**
+         * Tests that the outgoing logging rabbit template customizer bean is created when the outgoing logging feature is enabled.
+         */
         @Test
         void shouldCreateOutgoingLoggingRabbitTemplateCustomizerBean() {
             assertThat(outgoingLoggingRabbitTemplateCustomizer).isNotNull();
         }
 
+        /**
+         * Tests that the incoming message logging post-processor is added to the message listener container.
+         */
         @Test
         void shouldAddIncomingLoggingPostProcessorToContainer() throws Exception {
-            // Verify that the customizer bean exists
             assertThat(incomingLoggingContainerCustomizer).isNotNull();
 
-            // The customizer should have already been applied by Spring during container creation/setup
-            // Check the container's post-processors that were applied by the customizer
             Field postProcessorsField = testContainer.getClass()
                 .getSuperclass()
                 .getDeclaredField("afterReceivePostProcessors");
@@ -116,13 +119,13 @@ class LoggingAutoConfigurationIntegrationTest {
             }
         }
 
+        /**
+         * Tests that the outgoing message logging post-processor is added to the RabbitTemplate.
+         */
         @Test
         void shouldAddOutgoingLoggingPostProcessorToRabbitTemplate() throws Exception {
-            // Verify that the customizer bean exists
             assertThat(outgoingLoggingRabbitTemplateCustomizer).isNotNull();
 
-            // The customizer should have already been applied by Spring during template creation/setup
-            // Check the template's post-processors that were applied by the customizer
             Field postProcessorsField = rabbitTemplate.getClass()
                 .getDeclaredField("beforePublishPostProcessors");
             postProcessorsField.setAccessible(true);
@@ -165,29 +168,35 @@ class LoggingAutoConfigurationIntegrationTest {
         @Autowired
         private RabbitTemplate rabbitTemplate;
 
+        /**
+         * Tests that the incoming logging container customizer bean is not created when the incoming logging feature is disabled.
+         */
         @Test
         void shouldNotCreateIncomingLoggingContainerCustomizerBean() {
             assertThat(incomingLoggingContainerCustomizer).isNull();
         }
 
+        /**
+         * Tests that the outgoing logging rabbit template customizer bean is not created when the outgoing logging feature is disabled.
+         */
         @Test
         void shouldNotCreateOutgoingLoggingRabbitTemplateCustomizerBean() {
             assertThat(outgoingLoggingRabbitTemplateCustomizer).isNull();
         }
 
+        /**
+         * Tests that the incoming message logging post-processor is not added to the message listener container when logging is disabled.
+         */
         @Test
         void shouldNotAddIncomingLoggingPostProcessorToContainer() throws Exception {
-            // Verify that the customizer bean does not exist
             assertThat(incomingLoggingContainerCustomizer).isNull();
 
-            // Check the container's post-processors (should not contain our logger)
             Field postProcessorsField = testContainer.getClass()
                 .getSuperclass()
                 .getDeclaredField("afterReceivePostProcessors");
             postProcessorsField.setAccessible(true);
             Object postProcessorsObject = postProcessorsField.get(testContainer);
 
-            // The field can be null if no post-processors are configured at all
             if (postProcessorsObject != null) {
                 if (postProcessorsObject instanceof Object[] postProcessorsArray) {
                     assertThat(postProcessorsArray)
@@ -200,21 +209,18 @@ class LoggingAutoConfigurationIntegrationTest {
                 } else {
                     throw new AssertionError("Unexpected type for 'afterReceivePostProcessors': " + postProcessorsObject.getClass().getName());
                 }
-            } // If postProcessorsObject is null, the condition is implicitly satisfied (no processors, so no our logger)
+            }
         }
 
         @Test
         void shouldNotAddOutgoingLoggingPostProcessorToRabbitTemplate() throws Exception {
-            // Verify that the customizer bean does not exist
             assertThat(outgoingLoggingRabbitTemplateCustomizer).isNull();
 
-            // Check the template's post-processors (should not contain our logger)
             Field postProcessorsField = rabbitTemplate.getClass()
                 .getDeclaredField("beforePublishPostProcessors");
             postProcessorsField.setAccessible(true);
             Object postProcessorsObject = postProcessorsField.get(rabbitTemplate);
 
-            // The field can be null if no post-processors are configured at all
             if (postProcessorsObject != null) {
                 if (postProcessorsObject instanceof Object[] postProcessorsArray) {
                     assertThat(postProcessorsArray)
@@ -227,7 +233,7 @@ class LoggingAutoConfigurationIntegrationTest {
                 } else {
                     throw new AssertionError("Unexpected type for 'beforePublishPostProcessors': " + postProcessorsObject.getClass().getName());
                 }
-            } // If postProcessorsObject is null, the condition is implicitly satisfied (no processors, so no our logger)
+            }
         }
     }
 
@@ -250,23 +256,30 @@ class LoggingAutoConfigurationIntegrationTest {
         @Autowired
         private RabbitTemplate rabbitTemplate;
 
+        /**
+         * Tests that the incoming logging container customizer bean is created when the incoming logging feature is enabled.
+         */
         @Test
         void shouldCreateIncomingLoggingContainerCustomizerBean() {
             assertThat(incomingLoggingContainerCustomizer).isNotNull();
         }
 
+        /**
+         * Tests that the outgoing logging rabbit template customizer bean is not created when the outgoing logging feature is disabled.
+         */
         @Test
         void shouldNotCreateOutgoingLoggingRabbitTemplateCustomizerBean() {
             assertThat(outgoingLoggingRabbitTemplateCustomizer).isNull();
         }
 
+        /**
+         * Tests that the incoming message logging post-processor is added to the message listener container when incoming logging is enabled.
+         */
         @Test
         void shouldAddIncomingLoggingPostProcessorToContainer() throws Exception {
-            // Verify that the incoming customizer bean exists and outgoing does not
             assertThat(incomingLoggingContainerCustomizer).isNotNull();
             assertThat(outgoingLoggingRabbitTemplateCustomizer).isNull();
 
-            // Check the container's post-processors (should contain our logger)
             Field postProcessorsField = testContainer.getClass()
                 .getSuperclass()
                 .getDeclaredField("afterReceivePostProcessors");
@@ -292,16 +305,13 @@ class LoggingAutoConfigurationIntegrationTest {
 
         @Test
         void shouldNotAddOutgoingLoggingPostProcessorToRabbitTemplate() throws Exception {
-            // Verify that the outgoing customizer bean does not exist
             assertThat(outgoingLoggingRabbitTemplateCustomizer).isNull();
 
-            // Check the template's post-processors (should not contain our logger)
             Field postProcessorsField = rabbitTemplate.getClass()
                 .getDeclaredField("beforePublishPostProcessors");
             postProcessorsField.setAccessible(true);
             Object postProcessorsObject = postProcessorsField.get(rabbitTemplate);
 
-            // The field can be null if no post-processors are configured at all
             if (postProcessorsObject != null) {
                 if (postProcessorsObject instanceof Object[] postProcessorsArray) {
                     assertThat(postProcessorsArray)
@@ -314,7 +324,7 @@ class LoggingAutoConfigurationIntegrationTest {
                 } else {
                     throw new AssertionError("Unexpected type for 'beforePublishPostProcessors': " + postProcessorsObject.getClass().getName());
                 }
-            } // If postProcessorsObject is null, the condition is implicitly satisfied (no processors, so no our logger)
+            }
         }
     }
 
@@ -337,29 +347,35 @@ class LoggingAutoConfigurationIntegrationTest {
         @Autowired
         private RabbitTemplate rabbitTemplate;
 
+        /**
+         * Tests that the incoming logging container customizer bean is not created when the incoming logging feature is disabled.
+         */
         @Test
         void shouldNotCreateIncomingLoggingContainerCustomizerBean() {
             assertThat(incomingLoggingContainerCustomizer).isNull();
         }
 
+        /**
+         * Tests that the outgoing logging rabbit template customizer bean is created when the outgoing logging feature is enabled.
+         */
         @Test
         void shouldCreateOutgoingLoggingRabbitTemplateCustomizerBean() {
             assertThat(outgoingLoggingRabbitTemplateCustomizer).isNotNull();
         }
 
+        /**
+         * Tests that the incoming message logging post-processor is not added to the message listener container when incoming logging is disabled.
+         */
         @Test
         void shouldNotAddIncomingLoggingPostProcessorToContainer() throws Exception {
-            // Verify that the incoming customizer bean does not exist
             assertThat(incomingLoggingContainerCustomizer).isNull();
 
-            // Check the container's post-processors (should not contain our logger)
             Field postProcessorsField = testContainer.getClass()
                 .getSuperclass()
                 .getDeclaredField("afterReceivePostProcessors");
             postProcessorsField.setAccessible(true);
             Object postProcessorsObject = postProcessorsField.get(testContainer);
 
-            // The field can be null if no post-processors are configured at all
             if (postProcessorsObject != null) {
                 if (postProcessorsObject instanceof Object[] postProcessorsArray) {
                     assertThat(postProcessorsArray)
@@ -372,15 +388,16 @@ class LoggingAutoConfigurationIntegrationTest {
                 } else {
                     throw new AssertionError("Unexpected type for 'afterReceivePostProcessors': " + postProcessorsObject.getClass().getName());
                 }
-            } // If postProcessorsObject is null, the condition is implicitly satisfied (no processors, so no our logger)
+            }
         }
 
+        /**
+         * Tests that the outgoing message logging post-processor is added to the RabbitTemplate when outgoing logging is enabled.
+         */
         @Test
         void shouldAddOutgoingLoggingPostProcessorToRabbitTemplate() throws Exception {
-            // Verify that the outgoing customizer bean exists
             assertThat(outgoingLoggingRabbitTemplateCustomizer).isNotNull();
 
-            // Check the template's post-processors (should contain our logger)
             Field postProcessorsField = rabbitTemplate.getClass()
                 .getDeclaredField("beforePublishPostProcessors");
             postProcessorsField.setAccessible(true);

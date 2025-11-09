@@ -16,10 +16,21 @@ public final class OutgoingMessageLogger
     private static final Logger DEFAULT_LOG = LoggerFactory.getLogger(OutgoingMessageLogger.class);
     private final boolean enabled;
 
+    /**
+     * Constructor for OutgoingMessageLogger with default logger.
+     *
+     * @param properties the outgoing message logging configuration properties
+     */
     public OutgoingMessageLogger(AmqpexProperties.LoggingConfiguration.Outgoing properties) {
         this(DEFAULT_LOG, properties);
     }
 
+    /**
+     * Constructor for OutgoingMessageLogger with custom logger.
+     *
+     * @param customLogger the custom logger to use for logging
+     * @param properties   the outgoing message logging configuration properties
+     */
     public OutgoingMessageLogger(
         Logger customLogger,
         AmqpexProperties.LoggingConfiguration.Outgoing properties

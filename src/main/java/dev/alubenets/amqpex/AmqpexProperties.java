@@ -24,10 +24,61 @@ import org.springframework.boot.context.properties.NestedConfigurationProperty;
  *       max-body-size: 2500
  * </pre>
  */
+/**
+ * Configuration properties for AMQPex - Spring AMQP Extensions library.
+ * <p>
+ * Provides type-safe configuration for various AMQPex features. This class follows
+ * Spring Boot's configuration properties pattern.
+ * </p>
+ *
+ * <p>
+ * Example configuration:
+ * </p>
+ * <pre>
+ * amqpex:
+ *   logging:
+ *     incoming:
+ *       enabled: true
+ *       max-body-size: 1500
+ *     outgoing:
+ *       enabled: false
+ *       max-body-size: 2500
+ * </pre>
+ */
+
+/**
+ * Configuration properties for AMQPex - Spring AMQP Extensions library.
+ * <p>
+ * Provides type-safe configuration for various AMQPex features. This class follows
+ * Spring Boot's configuration properties pattern.
+ * </p>
+ *
+ * <p>
+ * Example configuration:
+ * </p>
+ * <pre>
+ * amqpex:
+ *   logging:
+ *     incoming:
+ *       enabled: true
+ *       max-body-size: 1500
+ *     outgoing:
+ *       enabled: false
+ *       max-body-size: 2500
+ * </pre>
+ */
 @ConfigurationProperties(prefix = "amqpex")
 public class AmqpexProperties {
 
     private final LoggingConfiguration logging = new LoggingConfiguration();
+
+    /**
+     * Creates a new instance of AmqpexProperties with default values.
+     * This constructor initializes the logging configuration with default settings.
+     */
+    public AmqpexProperties() {
+        // Initialize with default values
+    }
 
     /**
      * Gets the logging configuration.
@@ -50,9 +101,11 @@ public class AmqpexProperties {
         private final Outgoing outgoing = new Outgoing();
 
         /**
-         * Constructs a new logging configuration with default nested configurations.
+         * Creates a new instance of LoggingConfiguration with default nested configurations.
+         * Initializes incoming and outgoing logging configurations with default values.
          */
         public LoggingConfiguration() {
+            // Initialize nested configurations with default values
         }
 
         /**
@@ -75,10 +128,19 @@ public class AmqpexProperties {
 
         /**
          * Configuration for incoming message logging settings.
+         * Contains properties for controlling incoming message logging behavior.
          */
         public static class Incoming {
             private boolean enabled = true;
             private int maxBodySize = 1000;
+
+            /**
+             * Creates a new instance of Incoming logging configuration with default values.
+             * Sets enabled to true and maxBodySize to 1000 bytes.
+             */
+            public Incoming() {
+                // Initialize with default values for incoming message logging
+            }
 
             /**
              * Checks if incoming message logging is enabled.
@@ -119,10 +181,19 @@ public class AmqpexProperties {
 
         /**
          * Configuration for outgoing message logging settings.
+         * Contains properties for controlling outgoing message logging behavior.
          */
         public static class Outgoing {
             private boolean enabled = true;
             private int maxBodySize = 1000;
+
+            /**
+             * Creates a new instance of Outgoing logging configuration with default values.
+             * Sets enabled to true and maxBodySize to 1000 bytes.
+             */
+            public Outgoing() {
+                // Initialize with default values for outgoing message logging
+            }
 
             /**
              * Checks if outgoing message logging is enabled.

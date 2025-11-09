@@ -14,7 +14,12 @@ abstract sealed class LoggingMessagePostProcessor
     implements MessagePostProcessor
     permits IncomingMessageLogger, OutgoingMessageLogger {
 
+    /**
+     * The logger instance for this post processor.
+     */
     protected final Logger log;
+
+    /** The maximum body size to log before truncating. */
     protected final int maxBodySize;
 
     protected LoggingMessagePostProcessor(Logger log, int maxBodySize) {

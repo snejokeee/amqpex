@@ -157,9 +157,9 @@ class IncomingMessageLoggerTest {
          */
         static Stream<Arguments> nonReadableContentTypes() {
             return Stream.of(
-                Arguments.of(null, "null"), // null content type
-                Arguments.of("application/octet-stream", "application/octet-stream"), // binary format
-                Arguments.of("image/png", "image/png") // non-text format
+                Arguments.of(null, "null"),
+                Arguments.of("application/octet-stream", "application/octet-stream"),
+                Arguments.of("image/png", "image/png")
             );
         }
 
