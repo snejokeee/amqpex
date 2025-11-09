@@ -67,11 +67,11 @@ class LoggingAutoConfigurationIntegrationTest {
         if (postProcessorsObject instanceof Object[] postProcessorsArray) {
             assertThat(postProcessorsArray)
                 .as("Container's afterReceivePostProcessors array should contain an IncomingLoggingMessagePostProcessor")
-                .anySatisfy(processor -> assertThat(processor).isInstanceOf(IncomingLoggingMessagePostProcessor.class));
+                .anySatisfy(processor -> assertThat(processor).isInstanceOf(IncomingMessageLogger.class));
         } else if (postProcessorsObject instanceof List<?> postProcessorsList) {
             assertThat(postProcessorsList)
                 .as("Container's afterReceivePostProcessors list should contain an IncomingLoggingMessagePostProcessor")
-                .anySatisfy(processor -> assertThat(processor).isInstanceOf(IncomingLoggingMessagePostProcessor.class));
+                .anySatisfy(processor -> assertThat(processor).isInstanceOf(IncomingMessageLogger.class));
         } else {
             throw new AssertionError("Unexpected type for 'afterReceivePostProcessors': " + postProcessorsObject.getClass().getName());
         }

@@ -24,12 +24,6 @@ public class LoggingAutoConfiguration {
     private static final Logger log = LoggerFactory.getLogger(LoggingAutoConfiguration.class);
 
     /**
-     * Default constructor for LoggingAutoConfiguration.
-     */
-    public LoggingAutoConfiguration() {
-    }
-
-    /**
      * Creates a container customizer that adds the incoming message logging post-processor.
      *
      * @param properties the AMQPex properties
@@ -48,7 +42,7 @@ public class LoggingAutoConfiguration {
         return container -> {
             String listenerId = container.getListenerId();
             log.debug("Applying logging post-processor to SimpleMLC: {} (HashCode: {})", listenerId, container.hashCode());
-            container.addAfterReceivePostProcessors(new IncomingLoggingMessagePostProcessor(properties.getLogging().getIncoming()));
+            container.addAfterReceivePostProcessors(new IncomingMessageLogger(properties.getLogging().getIncoming()));
         };
     }
 }

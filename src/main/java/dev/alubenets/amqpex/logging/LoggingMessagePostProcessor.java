@@ -1,58 +1,70 @@
 package dev.alubenets.amqpex.logging;
 
-import dev.alubenets.amqpex.AmqpexProperties;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessagePostProcessor;
-import org.springframework.core.Ordered;
 import org.springframework.util.MimeTypeUtils;
 
 /**
- * A message post-processor that logs incoming messages for debugging purposes.
- * This processor runs with the highest precedence to capture the original state of messages.
+ * Abstract base class for message logging post processors.
+ * Provides common logging functionality for direction-specific implementations.
+ * This class is package-private to hide implementation details from library users.
  */
-public class IncomingLoggingMessagePostProcessor implements MessagePostProcessor, Ordered {
+abstract sealed class LoggingMessagePostProcessor
+    implements MessagePostProcessor
+    permits IncomingMessageLogger {
 
-    private static final Logger log = LoggerFactory.getLogger(IncomingLoggingMessagePostProcessor.class);
+    protected final Logger log;
+    protected final int maxBodySize;
 
-    private final AmqpexProperties.LoggingConfiguration.Incoming properties;
-
-    /**
-     * Creates a new instance of IncomingLoggingMessagePostProcessor.
-     * @param properties the incoming message logging configuration properties
-     */
-    public IncomingLoggingMessagePostProcessor(AmqpexProperties.LoggingConfiguration.Incoming properties) {
-        this.properties = properties;
+    protected LoggingMessagePostProcessor(Logger log, int maxBodySize) {
+        this.log = log;
+        this.maxBodySize = maxBodySize;
     }
 
     @Override
-    public Message postProcessMessage(Message message) {
-        if (log.isDebugEnabled() && properties.isEnabled()) {
+    public final Message postProcessMessage(Message message) {
+        if (log.isDebugEnabled() && isEnabled()) {
             try {
                 String readableBody = extractReadableBody(message);
                 logMessageDetails(message, readableBody);
             } catch (Exception e) {
-                log.warn("AMQPex: Failed to log incoming message: {}", e.getMessage());
+                log.warn("Failed to log {} message: {}", getDirectionName(), e.getMessage());
             }
         }
         return message;
     }
 
     /**
-     * Logs the details of the incoming message.
+     * Checks if logging is enabled for this processor.
      *
-     * @param message the message to log details for
+     * @return true if logging is enabled, false otherwise
+     */
+    protected abstract boolean isEnabled();
+
+    /**
+     * Gets the name of the logging direction for logging purposes.
+     *
+     * @return the direction name
+     */
+    protected abstract String getDirectionName();
+
+    /**
+     * Logs the details of the message for the specific direction.
+     * This method is final to prevent overriding and ensure consistent logging format.
+     *
+     * @param message      the message to log details for
      * @param readableBody the readable body content of the message, or null if not readable
      */
     private void logMessageDetails(Message message, String readableBody) {
-        var props = message.getMessageProperties();
-
+        var messageProperties = message.getMessageProperties();
+        var direction = getDirectionName();
         log.debug(
-            "AMQPex Incoming Message - Exchange: '{}', RoutingKey: '{}', ContentType: '{}', Body: {}",
-            props.getReceivedExchange(),
-            props.getReceivedRoutingKey(),
-            props.getContentType(),
+            "{} Message - Exchange: '{}', RoutingKey: '{}', ContentType: '{}', Body: {}",
+            direction,
+            messageProperties.getReceivedExchange(),
+            messageProperties.getReceivedRoutingKey(),
+            messageProperties.getContentType(),
             readableBody != null ? truncateBody(readableBody) : "<Non-readable body>"
         );
     }
@@ -63,7 +75,7 @@ public class IncomingLoggingMessagePostProcessor implements MessagePostProcessor
      * @param message the message to extract body from
      * @return the readable body content or null if not readable
      */
-    private String extractReadableBody(Message message) {
+    protected String extractReadableBody(Message message) {
         var bodyBytes = message.getBody();
         var contentType = message.getMessageProperties().getContentType();
 
@@ -79,6 +91,7 @@ public class IncomingLoggingMessagePostProcessor implements MessagePostProcessor
         try {
             return new String(bodyBytes, charset);
         } catch (Exception e) {
+            log.debug("Failed to decode message body with charset '{}': {}", charset, e.getMessage());
             return null;
         }
     }
@@ -89,11 +102,11 @@ public class IncomingLoggingMessagePostProcessor implements MessagePostProcessor
      * @param body the body to truncate
      * @return the truncated body with a suffix if it was truncated
      */
-    private String truncateBody(String body) {
-        if (body.length() <= properties.getMaxBodySize()) {
+    protected String truncateBody(String body) {
+        if (body.length() <= maxBodySize) {
             return body;
         }
-        return body.substring(0, properties.getMaxBodySize()) + "... [TRUNCATED]";
+        return body.substring(0, maxBodySize) + "[TRUNCATED]";
     }
 
     /**
@@ -102,7 +115,10 @@ public class IncomingLoggingMessagePostProcessor implements MessagePostProcessor
      * @param contentType the content type to check
      * @return true if the content type is readable, false otherwise
      */
-    private boolean isReadableContentType(String contentType) {
+    protected boolean isReadableContentType(String contentType) {
+        if (contentType == null) {
+            return false;
+        }
         var lowerContentType = contentType.toLowerCase();
         return lowerContentType.startsWith(MimeTypeUtils.APPLICATION_JSON_VALUE) ||
             lowerContentType.startsWith(MimeTypeUtils.APPLICATION_XML_VALUE) ||
@@ -116,20 +132,15 @@ public class IncomingLoggingMessagePostProcessor implements MessagePostProcessor
      * @param contentEncoding the content encoding specified in message properties, or null
      * @return the charset to use for decoding
      */
-    private String determineCharset(String contentEncoding) {
+    protected String determineCharset(String contentEncoding) {
         if (contentEncoding != null && !contentEncoding.trim().isEmpty()) {
             try {
                 java.nio.charset.Charset.forName(contentEncoding);
                 return contentEncoding;
             } catch (Exception e) {
-                // Fall back to UTF-8
+                log.debug("Invalid charset '{}', falling back to UTF-8: {}", contentEncoding, e.getMessage());
             }
         }
         return "UTF-8";
-    }
-
-    @Override
-    public int getOrder() {
-        return HIGHEST_PRECEDENCE;
     }
 }

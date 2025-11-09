@@ -5,30 +5,34 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import dev.alubenets.amqpex.AmqpexProperties;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Unit test for {@link IncomingLoggingMessagePostProcessor}.
+ * Unit test for {@link IncomingMessageLogger}.
  * <p>
  * Tests the core logic of message processing with actual logging verification.
  * All tests ensure that logging functionality works as expected while maintaining
  * message integrity and proper error handling.
  */
-class IncomingLoggingMessagePostProcessorTest {
+class IncomingMessageLoggerTest {
 
     private AmqpexProperties.LoggingConfiguration.Incoming incomingProps;
-    private IncomingLoggingMessagePostProcessor processor;
+    private IncomingMessageLogger processor;
     private ListAppender<ILoggingEvent> listAppender;
     private Logger logger;
 
@@ -40,7 +44,7 @@ class IncomingLoggingMessagePostProcessorTest {
      */
     @BeforeEach
     void setUp() {
-        logger = (Logger) LoggerFactory.getLogger(IncomingLoggingMessagePostProcessor.class);
+        logger = (Logger) LoggerFactory.getLogger(IncomingMessageLogger.class);
         logger.setLevel(Level.DEBUG);
 
         listAppender = new ListAppender<>();
@@ -49,7 +53,14 @@ class IncomingLoggingMessagePostProcessorTest {
 
         incomingProps = new AmqpexProperties.LoggingConfiguration.Incoming();
         incomingProps.setMaxBodySize(100);
-        processor = new IncomingLoggingMessagePostProcessor(incomingProps);
+        incomingProps.setEnabled(true); // Explicitly set enabled to true
+        processor = new IncomingMessageLogger(incomingProps);
+    }
+
+    @AfterEach
+    void tearDown() {
+        // Clean up to avoid affecting other tests
+        logger.detachAndStopAllAppenders();
     }
 
     /**
@@ -79,16 +90,18 @@ class IncomingLoggingMessagePostProcessorTest {
             assertThat(result).isSameAs(message);
 
             List<ILoggingEvent> logEvents = listAppender.list;
-            assertThat(logEvents)
-                .isNotEmpty()
-                .first()
-                .satisfies(logEvent -> {
-                    assertThat(logEvent.getLevel()).isEqualTo(Level.DEBUG);
-                    assertThat(logEvent.getFormattedMessage())
-                        .contains("test-exchange")
-                        .contains("test.routing.key")
-                        .contains("{\"key\":\"value\"}");
-                });
+            assertThat(logEvents).isNotEmpty();
+
+            // Find the main debug event (not the charset debug event)
+            ILoggingEvent debugEvent = logEvents.stream()
+                .filter(event -> event.getLevel() == Level.DEBUG)
+                .filter(event -> event.getFormattedMessage().startsWith("INCOMING Message"))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Expected main DEBUG event not found"));
+
+            String expectedLogMessage = "INCOMING Message - Exchange: 'test-exchange', " +
+                "RoutingKey: 'test.routing.key', ContentType: 'application/json', Body: {\"key\":\"value\"}";
+            assertThat(debugEvent.getFormattedMessage()).isEqualTo(expectedLogMessage);
         }
 
         /**
@@ -99,7 +112,7 @@ class IncomingLoggingMessagePostProcessorTest {
         @Test
         void shouldNotLogWhenDisabled() {
             incomingProps.setEnabled(false);
-            processor = new IncomingLoggingMessagePostProcessor(incomingProps);
+            processor = new IncomingMessageLogger(incomingProps);
 
             var messageProps = new MessageProperties();
             messageProps.setContentType("application/json");
@@ -109,7 +122,26 @@ class IncomingLoggingMessagePostProcessorTest {
             var result = processor.postProcessMessage(message);
 
             assertThat(result).isSameAs(message);
+            assertThat(listAppender.list).isEmpty();
+        }
 
+        /**
+         * Tests that no logging occurs when debug level is not enabled.
+         * <p>
+         * Verifies that when logger level is above DEBUG, no log events are generated.
+         */
+        @Test
+        void shouldNotLogWhenDebugNotEnabled() {
+            logger.setLevel(Level.INFO); // Set to INFO level
+
+            var messageProps = new MessageProperties();
+            messageProps.setContentType("application/json");
+            var body = "{\"key\":\"value\"}".getBytes();
+            var message = new Message(body, messageProps);
+
+            var result = processor.postProcessMessage(message);
+
+            assertThat(result).isSameAs(message);
             assertThat(listAppender.list).isEmpty();
         }
     }
@@ -121,13 +153,31 @@ class IncomingLoggingMessagePostProcessorTest {
     class ContentTypes {
 
         /**
-         * Tests that when content type is null, the body is marked as non-readable in logs.
-         * <p>
-         * Verifies that messages without a content type header are treated as non-readable.
+         * Provides test data for non-readable content type tests.
+         *
+         * @return stream of test arguments
          */
-        @Test
-        void shouldNotLogBodyIfContentTypeIsNull() {
+        static Stream<Arguments> nonReadableContentTypes() {
+            return Stream.of(
+                Arguments.of(null, "null"), // null content type
+                Arguments.of("application/octet-stream", "application/octet-stream"), // binary format
+                Arguments.of("image/png", "image/png") // non-text format
+            );
+        }
+
+        /**
+         * Tests that when content is of a non-readable type, the body is marked as non-readable in logs.
+         * <p>
+         * Verifies that non-readable content types like null, binary formats, and images are treated as non-readable.
+         *
+         * @param contentType the content type to test (null or non-readable type)
+         * @param expectedContentType the expected content type string in log message
+         */
+        @ParameterizedTest
+        @MethodSource("nonReadableContentTypes")
+        void shouldNotLogBodyIfContentTypeIsNotReadable(String contentType, String expectedContentType) {
             var messageProps = new MessageProperties();
+            messageProps.setContentType(contentType);
             var body = "some body".getBytes();
             var message = new Message(body, messageProps);
 
@@ -136,56 +186,18 @@ class IncomingLoggingMessagePostProcessorTest {
             assertThat(result).isSameAs(message);
 
             List<ILoggingEvent> logEvents = listAppender.list;
-            if (!logEvents.isEmpty()) {
-                assertThat(logEvents.getFirst().getFormattedMessage())
-                    .contains("<Non-readable body>");
-            }
-        }
+            assertThat(logEvents).isNotEmpty();
 
-        /**
-         * Tests that when content is in a non-readable format, the body is marked as non-readable in logs.
-         * <p>
-         * Verifies that binary content types like application/octet-stream are treated as non-readable.
-         */
-        @Test
-        void shouldNotLogBodyIfNotReadableFormat() {
-            var messageProps = new MessageProperties();
-            messageProps.setContentType("application/octet-stream");
-            var body = "some binary data".getBytes();
-            var message = new Message(body, messageProps);
+            ILoggingEvent debugEvent = logEvents.stream()
+                .filter(event -> event.getLevel() == Level.DEBUG)
+                .filter(event -> event.getFormattedMessage().startsWith("INCOMING Message"))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Expected main DEBUG event not found"));
 
-            var result = processor.postProcessMessage(message);
-
-            assertThat(result).isSameAs(message);
-
-            List<ILoggingEvent> logEvents = listAppender.list;
-            if (!logEvents.isEmpty()) {
-                assertThat(logEvents.getFirst().getFormattedMessage())
-                    .contains("<Non-readable body>");
-            }
-        }
-
-        /**
-         * Tests that when content is of a non-readable type (like image), the body is marked as non-readable in logs.
-         * <p>
-         * Verifies that non-text content types like image/png are treated as non-readable.
-         */
-        @Test
-        void shouldNotLogBodyIfContentTypeIsNotReadable() {
-            var messageProps = new MessageProperties();
-            messageProps.setContentType("image/png");
-            var body = "image data".getBytes();
-            var message = new Message(body, messageProps);
-
-            var result = processor.postProcessMessage(message);
-
-            assertThat(result).isSameAs(message);
-
-            List<ILoggingEvent> logEvents = listAppender.list;
-            if (!logEvents.isEmpty()) {
-                assertThat(logEvents.getFirst().getFormattedMessage())
-                    .contains("<Non-readable body>");
-            }
+            String expectedLogMessage = String.format(
+                "INCOMING Message - Exchange: 'null', RoutingKey: 'null', ContentType: '%s', Body: <Non-readable body>",
+                expectedContentType);
+            assertThat(debugEvent.getFormattedMessage()).isEqualTo(expectedLogMessage);
         }
 
         /**
@@ -218,12 +230,18 @@ class IncomingLoggingMessagePostProcessorTest {
             assertThat(result).isSameAs(message);
 
             List<ILoggingEvent> logEvents = listAppender.list;
-            assertThat(logEvents)
-                .isNotEmpty()
-                .first()
-                .extracting(ILoggingEvent::getFormattedMessage)
-                .asString()
-                .contains(bodyContent);
+            assertThat(logEvents).isNotEmpty();
+
+            ILoggingEvent debugEvent = logEvents.stream()
+                .filter(event -> event.getLevel() == Level.DEBUG)
+                .filter(event -> event.getFormattedMessage().startsWith("INCOMING Message"))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Expected main DEBUG event not found"));
+
+            String expectedLogMessage = String.format(
+                "INCOMING Message - Exchange: 'null', RoutingKey: 'null', ContentType: '%s', Body: %s",
+                contentType, bodyContent);
+            assertThat(debugEvent.getFormattedMessage()).isEqualTo(expectedLogMessage);
         }
     }
 
@@ -240,9 +258,12 @@ class IncomingLoggingMessagePostProcessorTest {
          */
         @Test
         void shouldTruncateBodyIfTooLong() {
+            incomingProps.setMaxBodySize(10); // Set smaller max size for easier testing
+            processor = new IncomingMessageLogger(incomingProps);
+
             var messageProps = new MessageProperties();
             messageProps.setContentType("text/plain");
-            var longBody = "A".repeat(150);
+            var longBody = "This is a very long message body that will be truncated";
             var message = new Message(longBody.getBytes(), messageProps);
 
             var result = processor.postProcessMessage(message);
@@ -250,15 +271,17 @@ class IncomingLoggingMessagePostProcessorTest {
             assertThat(result).isSameAs(message);
 
             List<ILoggingEvent> logEvents = listAppender.list;
-            assertThat(logEvents)
-                .isNotEmpty()
-                .first()
-                .extracting(ILoggingEvent::getFormattedMessage)
-                .asString()
-                .contains("[TRUNCATED]");
+            assertThat(logEvents).isNotEmpty();
 
-            String loggedMessage = logEvents.getFirst().getFormattedMessage();
-            assertThat(loggedMessage).contains("A".repeat(100)).contains("[TRUNCATED]");
+            ILoggingEvent debugEvent = logEvents.stream()
+                .filter(event -> event.getLevel() == Level.DEBUG)
+                .filter(event -> event.getFormattedMessage().startsWith("INCOMING Message"))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Expected main DEBUG event not found"));
+
+            String expectedLogMessage = "INCOMING Message - Exchange: 'null', RoutingKey: 'null', " +
+                "ContentType: 'text/plain', Body: This is a [TRUNCATED]";
+            assertThat(debugEvent.getFormattedMessage()).isEqualTo(expectedLogMessage);
         }
 
         /**
@@ -277,10 +300,17 @@ class IncomingLoggingMessagePostProcessorTest {
             assertThat(result).isSameAs(message);
 
             List<ILoggingEvent> logEvents = listAppender.list;
-            if (!logEvents.isEmpty()) {
-                assertThat(logEvents.getFirst().getFormattedMessage())
-                    .contains("<Empty>");
-            }
+            assertThat(logEvents).isNotEmpty();
+
+            ILoggingEvent debugEvent = logEvents.stream()
+                .filter(event -> event.getLevel() == Level.DEBUG)
+                .filter(event -> event.getFormattedMessage().startsWith("INCOMING Message"))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Expected main DEBUG event not found"));
+
+            String expectedLogMessage = "INCOMING Message - Exchange: 'null', RoutingKey: 'null', " +
+                "ContentType: 'application/json', Body: <Empty>";
+            assertThat(debugEvent.getFormattedMessage()).isEqualTo(expectedLogMessage);
         }
     }
 
@@ -307,10 +337,20 @@ class IncomingLoggingMessagePostProcessorTest {
 
             assertThat(result).isSameAs(message);
 
+            // Should still generate log event, but body will be non-readable
             List<ILoggingEvent> logEvents = listAppender.list;
-            if (!logEvents.isEmpty()) {
-                assertThat(logEvents.getFirst().getFormattedMessage()).isNotNull();
-            }
+            assertThat(logEvents).isNotEmpty();
+
+            ILoggingEvent debugEvent = logEvents.stream()
+                .filter(event -> event.getLevel() == Level.DEBUG)
+                .filter(event -> event.getFormattedMessage().startsWith("INCOMING Message"))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Expected main DEBUG event not found"));
+
+            // The invalid bytes might still be decoded as replacement characters, so the body will be readable
+            // but potentially with replacement characters
+            String actualLogMessage = debugEvent.getFormattedMessage();
+            assertThat(actualLogMessage).startsWith("INCOMING Message - Exchange: 'null', RoutingKey: 'null', ContentType: 'text/plain', Body: ");
         }
 
         /**
@@ -333,6 +373,17 @@ class IncomingLoggingMessagePostProcessorTest {
 
             List<ILoggingEvent> logEvents = listAppender.list;
             assertThat(logEvents).isNotEmpty();
+
+            ILoggingEvent debugEvent = logEvents.stream()
+                .filter(event -> event.getLevel() == Level.DEBUG)
+                .filter(event -> event.getFormattedMessage().startsWith("INCOMING Message"))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Expected main DEBUG event not found"));
+
+            // The body should be readable and logged
+            String expectedLogMessage = "INCOMING Message - Exchange: 'null', RoutingKey: 'null', " +
+                "ContentType: 'text/plain', Body: Café";
+            assertThat(debugEvent.getFormattedMessage()).isEqualTo(expectedLogMessage);
         }
 
         /**
@@ -341,7 +392,7 @@ class IncomingLoggingMessagePostProcessorTest {
          * Verifies that when an invalid character encoding is specified, the system falls back to UTF-8.
          */
         @Test
-        void shouldLogBodyWithDefaultCharsetIfContentEncodingIsInvalid() {
+        void shouldUseDefaultCharsetIfContentEncodingIsInvalid() {
             var messageProps = new MessageProperties();
             messageProps.setContentType("text/plain");
             messageProps.setContentEncoding("INVALID_CHARSET_NAME");
@@ -355,6 +406,17 @@ class IncomingLoggingMessagePostProcessorTest {
 
             List<ILoggingEvent> logEvents = listAppender.list;
             assertThat(logEvents).isNotEmpty();
+
+            // We expect TWO events: the charset warning and the main log message
+            ILoggingEvent mainEvent = logEvents.stream()
+                .filter(event -> event.getLevel() == Level.DEBUG)
+                .filter(event -> event.getFormattedMessage().startsWith("INCOMING Message"))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Expected main DEBUG event not found"));
+
+            String expectedLogMessage = "INCOMING Message - Exchange: 'null', RoutingKey: 'null', " +
+                "ContentType: 'text/plain', Body: some text";
+            assertThat(mainEvent.getFormattedMessage()).isEqualTo(expectedLogMessage);
         }
     }
 
@@ -379,6 +441,9 @@ class IncomingLoggingMessagePostProcessorTest {
             var result = processor.postProcessMessage(message);
 
             assertThat(result).isSameAs(message);
+            // Verify the original message properties and body are unchanged
+            assertThat(result.getBody()).isEqualTo(body);
+            assertThat(result.getMessageProperties()).isSameAs(messageProps);
 
             List<ILoggingEvent> logEvents = listAppender.list;
             assertThat(logEvents).isNotEmpty();
@@ -390,17 +455,20 @@ class IncomingLoggingMessagePostProcessorTest {
          * Verifies that logging failures don't break message processing - the message is still returned unchanged.
          */
         @Test
-        void shouldNotBreakWhenLoggingFails() {
-            logger.detachAndStopAllAppenders();
-
+        void shouldNotBreakWhenExceptionOccursDuringProcessing() {
             var messageProps = new MessageProperties();
-            messageProps.setContentType("application/json");
-            var body = "{\"key\":\"value\"}".getBytes();
+            messageProps.setContentType("text/plain");
+            messageProps.setContentEncoding("INVALID_CHARSET_NAME");
+            String originalBody = "some text";
+            var body = originalBody.getBytes();
             var message = new Message(body, messageProps);
 
             var result = processor.postProcessMessage(message);
 
             assertThat(result).isSameAs(message);
+
+            List<ILoggingEvent> logEvents = listAppender.list;
+            assertThat(logEvents).isNotEmpty();
         }
     }
 }
