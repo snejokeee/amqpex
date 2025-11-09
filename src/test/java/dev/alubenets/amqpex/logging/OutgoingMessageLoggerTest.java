@@ -23,16 +23,16 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Unit test for {@link IncomingMessageLogger}.
+ * Unit test for {@link OutgoingMessageLogger}.
  * <p>
  * Tests the core logic of message processing with actual logging verification.
  * All tests ensure that logging functionality works as expected while maintaining
  * message integrity and proper error handling.
  */
-class IncomingMessageLoggerTest {
+class OutgoingMessageLoggerTest {
 
-    private AmqpexProperties.LoggingConfiguration.Incoming incomingProps;
-    private IncomingMessageLogger processor;
+    private AmqpexProperties.LoggingConfiguration.Outgoing outgoingProps;
+    private OutgoingMessageLogger processor;
     private ListAppender<ILoggingEvent> listAppender;
     private Logger logger;
 
@@ -44,17 +44,17 @@ class IncomingMessageLoggerTest {
      */
     @BeforeEach
     void setUp() {
-        logger = (Logger) LoggerFactory.getLogger(IncomingMessageLogger.class);
+        logger = (Logger) LoggerFactory.getLogger(OutgoingMessageLogger.class);
         logger.setLevel(Level.DEBUG);
 
         listAppender = new ListAppender<>();
         listAppender.start();
         logger.addAppender(listAppender);
 
-        incomingProps = new AmqpexProperties.LoggingConfiguration.Incoming();
-        incomingProps.setMaxBodySize(100);
-        incomingProps.setEnabled(true);
-        processor = new IncomingMessageLogger(incomingProps);
+        outgoingProps = new AmqpexProperties.LoggingConfiguration.Outgoing();
+        outgoingProps.setMaxBodySize(100);
+        outgoingProps.setEnabled(true);
+        processor = new OutgoingMessageLogger(outgoingProps);
     }
 
     @AfterEach
@@ -93,11 +93,11 @@ class IncomingMessageLoggerTest {
 
             ILoggingEvent debugEvent = logEvents.stream()
                 .filter(event -> event.getLevel() == Level.DEBUG)
-                .filter(event -> event.getFormattedMessage().startsWith("INCOMING Message"))
+                .filter(event -> event.getFormattedMessage().startsWith("OUTGOING Message"))
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("Expected main DEBUG event not found"));
 
-            String expectedLogMessage = "INCOMING Message - Exchange: 'test-exchange', " +
+            String expectedLogMessage = "OUTGOING Message - Exchange: 'test-exchange', " +
                 "RoutingKey: 'test.routing.key', ContentType: 'application/json', Body: {\"key\":\"value\"}";
             assertThat(debugEvent.getFormattedMessage()).isEqualTo(expectedLogMessage);
         }
@@ -109,8 +109,8 @@ class IncomingMessageLoggerTest {
          */
         @Test
         void shouldNotLogWhenDisabled() {
-            incomingProps.setEnabled(false);
-            processor = new IncomingMessageLogger(incomingProps);
+            outgoingProps.setEnabled(false);
+            processor = new OutgoingMessageLogger(outgoingProps);
 
             var messageProps = new MessageProperties();
             messageProps.setContentType("application/json");
@@ -188,12 +188,12 @@ class IncomingMessageLoggerTest {
 
             ILoggingEvent debugEvent = logEvents.stream()
                 .filter(event -> event.getLevel() == Level.DEBUG)
-                .filter(event -> event.getFormattedMessage().startsWith("INCOMING Message"))
+                .filter(event -> event.getFormattedMessage().startsWith("OUTGOING Message"))
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("Expected main DEBUG event not found"));
 
             String expectedLogMessage = String.format(
-                "INCOMING Message - Exchange: 'null', RoutingKey: 'null', ContentType: '%s', Body: <Non-readable body>",
+                "OUTGOING Message - Exchange: 'null', RoutingKey: 'null', ContentType: '%s', Body: <Non-readable body>",
                 expectedContentType);
             assertThat(debugEvent.getFormattedMessage()).isEqualTo(expectedLogMessage);
         }
@@ -232,12 +232,12 @@ class IncomingMessageLoggerTest {
 
             ILoggingEvent debugEvent = logEvents.stream()
                 .filter(event -> event.getLevel() == Level.DEBUG)
-                .filter(event -> event.getFormattedMessage().startsWith("INCOMING Message"))
+                .filter(event -> event.getFormattedMessage().startsWith("OUTGOING Message"))
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("Expected main DEBUG event not found"));
 
             String expectedLogMessage = String.format(
-                "INCOMING Message - Exchange: 'null', RoutingKey: 'null', ContentType: '%s', Body: %s",
+                "OUTGOING Message - Exchange: 'null', RoutingKey: 'null', ContentType: '%s', Body: %s",
                 contentType, bodyContent);
             assertThat(debugEvent.getFormattedMessage()).isEqualTo(expectedLogMessage);
         }
@@ -256,8 +256,8 @@ class IncomingMessageLoggerTest {
          */
         @Test
         void shouldTruncateBodyIfTooLong() {
-            incomingProps.setMaxBodySize(10);
-            processor = new IncomingMessageLogger(incomingProps);
+            outgoingProps.setMaxBodySize(10);
+            processor = new OutgoingMessageLogger(outgoingProps);
 
             var messageProps = new MessageProperties();
             messageProps.setContentType("text/plain");
@@ -273,11 +273,11 @@ class IncomingMessageLoggerTest {
 
             ILoggingEvent debugEvent = logEvents.stream()
                 .filter(event -> event.getLevel() == Level.DEBUG)
-                .filter(event -> event.getFormattedMessage().startsWith("INCOMING Message"))
+                .filter(event -> event.getFormattedMessage().startsWith("OUTGOING Message"))
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("Expected main DEBUG event not found"));
 
-            String expectedLogMessage = "INCOMING Message - Exchange: 'null', RoutingKey: 'null', " +
+            String expectedLogMessage = "OUTGOING Message - Exchange: 'null', RoutingKey: 'null', " +
                 "ContentType: 'text/plain', Body: This is a [TRUNCATED]";
             assertThat(debugEvent.getFormattedMessage()).isEqualTo(expectedLogMessage);
         }
@@ -302,11 +302,11 @@ class IncomingMessageLoggerTest {
 
             ILoggingEvent debugEvent = logEvents.stream()
                 .filter(event -> event.getLevel() == Level.DEBUG)
-                .filter(event -> event.getFormattedMessage().startsWith("INCOMING Message"))
+                .filter(event -> event.getFormattedMessage().startsWith("OUTGOING Message"))
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("Expected main DEBUG event not found"));
 
-            String expectedLogMessage = "INCOMING Message - Exchange: 'null', RoutingKey: 'null', " +
+            String expectedLogMessage = "OUTGOING Message - Exchange: 'null', RoutingKey: 'null', " +
                 "ContentType: 'application/json', Body: <Empty>";
             assertThat(debugEvent.getFormattedMessage()).isEqualTo(expectedLogMessage);
         }
@@ -340,12 +340,12 @@ class IncomingMessageLoggerTest {
 
             ILoggingEvent debugEvent = logEvents.stream()
                 .filter(event -> event.getLevel() == Level.DEBUG)
-                .filter(event -> event.getFormattedMessage().startsWith("INCOMING Message"))
+                .filter(event -> event.getFormattedMessage().startsWith("OUTGOING Message"))
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("Expected main DEBUG event not found"));
 
             String actualLogMessage = debugEvent.getFormattedMessage();
-            assertThat(actualLogMessage).startsWith("INCOMING Message - Exchange: 'null', RoutingKey: 'null', ContentType: 'text/plain', Body: ");
+            assertThat(actualLogMessage).startsWith("OUTGOING Message - Exchange: 'null', RoutingKey: 'null', ContentType: 'text/plain', Body: ");
         }
 
         /**
@@ -371,11 +371,11 @@ class IncomingMessageLoggerTest {
 
             ILoggingEvent debugEvent = logEvents.stream()
                 .filter(event -> event.getLevel() == Level.DEBUG)
-                .filter(event -> event.getFormattedMessage().startsWith("INCOMING Message"))
+                .filter(event -> event.getFormattedMessage().startsWith("OUTGOING Message"))
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("Expected main DEBUG event not found"));
 
-            String expectedLogMessage = "INCOMING Message - Exchange: 'null', RoutingKey: 'null', " +
+            String expectedLogMessage = "OUTGOING Message - Exchange: 'null', RoutingKey: 'null', " +
                 "ContentType: 'text/plain', Body: Café";
             assertThat(debugEvent.getFormattedMessage()).isEqualTo(expectedLogMessage);
         }
@@ -403,11 +403,11 @@ class IncomingMessageLoggerTest {
 
             ILoggingEvent mainEvent = logEvents.stream()
                 .filter(event -> event.getLevel() == Level.DEBUG)
-                .filter(event -> event.getFormattedMessage().startsWith("INCOMING Message"))
+                .filter(event -> event.getFormattedMessage().startsWith("OUTGOING Message"))
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("Expected main DEBUG event not found"));
 
-            String expectedLogMessage = "INCOMING Message - Exchange: 'null', RoutingKey: 'null', " +
+            String expectedLogMessage = "OUTGOING Message - Exchange: 'null', RoutingKey: 'null', " +
                 "ContentType: 'text/plain', Body: some text";
             assertThat(mainEvent.getFormattedMessage()).isEqualTo(expectedLogMessage);
         }

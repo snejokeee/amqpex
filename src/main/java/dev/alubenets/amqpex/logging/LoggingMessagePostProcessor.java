@@ -12,7 +12,7 @@ import org.springframework.util.MimeTypeUtils;
  */
 abstract sealed class LoggingMessagePostProcessor
     implements MessagePostProcessor
-    permits IncomingMessageLogger {
+    permits IncomingMessageLogger, OutgoingMessageLogger {
 
     protected final Logger log;
     protected final int maxBodySize;

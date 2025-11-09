@@ -33,6 +33,7 @@ dependencies {
     implementation("org.springframework.amqp:spring-rabbit")
     implementation("org.springframework:spring-context")
     implementation("org.slf4j:slf4j-api:2.0.16")
+    implementation("jakarta.annotation:jakarta.annotation-api:2.1.1")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.amqp:spring-rabbit-test")
