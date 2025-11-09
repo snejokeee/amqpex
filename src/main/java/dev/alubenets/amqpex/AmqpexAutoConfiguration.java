@@ -10,10 +10,4 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 @AutoConfiguration
 @EnableConfigurationProperties(AmqpexProperties.class)
 public class AmqpexAutoConfiguration {
-
-    /**
-     * Default constructor for AmqpexAutoConfiguration.
-     */
-    public AmqpexAutoConfiguration() {
-    }
 }

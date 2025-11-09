@@ -33,7 +33,8 @@ amqpex/
 │   │   │       ├── AmqpexAutoConfiguration.java
 │   │   │       ├── AmqpexProperties.java
 │   │   │       └── logging/
-│   │   │           ├── IncomingLoggingMessagePostProcessor.java
+│   │   │           ├── LoggingMessagePostProcessor.java
+│   │   │           ├── IncomingMessageLogger.java
 │   │   │           └── LoggingAutoConfiguration.java
 │   │   └── resources/
 │   │       └── META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports
@@ -43,7 +44,7 @@ amqpex/
 │               ├── AmqpexPropertiesTest.java
 │               ├── AmqpexPropertiesIntegrationTest.java
 │               └── logging/
-│                   ├── IncomingLoggingMessagePostProcessorTest.java
+│                   ├── IncomingMessageLoggerTest.java
 │                   └── LoggingAutoConfigurationIntegrationTest.java
 ├── README.md
 ├── CONTRIBUTING.md
@@ -61,6 +62,13 @@ amqpex/
 - `amqpex.logging.incoming.enabled` (default: true) - Enable/disable the logging feature
 - `amqpex.logging.incoming.maxBodySize` (default: 1000) - Maximum body size to log
 
+## Architecture Pattern
+- Abstract base class pattern using sealed classes for controlled extensibility
+- `LoggingMessagePostProcessor` (sealed abstract class) provides common functionality for message logging
+- `IncomingMessageLogger` extends the abstract class with specific incoming message behavior
+- All logging functionality runs with highest precedence to capture original message state
+- Message integrity maintained (messages are never modified during logging)
+
 ## Key Classes and Files
 
 ### Main Package (`dev.alubenets.amqpex`)
@@ -68,7 +76,8 @@ amqpex/
 - `AmqpexProperties` - Configuration properties class with nested structure for type-safe property binding
 
 ### Logging Package (`dev.alubenets.amqpex.logging`)
-- `IncomingLoggingMessagePostProcessor` - Message post-processor that handles logging with highest precedence
+- `LoggingMessagePostProcessor` (sealed abstract class) - Provides common functionality for message logging with sealed class pattern for controlled extensibility
+- `IncomingMessageLogger` - Concrete implementation for incoming message logging that extends the abstract base class
 - `LoggingAutoConfiguration` - Configures the logging feature based on properties
 
 ### Configuration Files
@@ -93,7 +102,7 @@ All tests have been polished to maintain consistent style with proper JavaDoc:
    - `WithCustomProperties.shouldBindCustomPropertiesCorrectlyWithSpringBootMechanism()` - Tests Spring Boot property binding
    - `WithDefaultProperties.shouldUseDefaultValuesWithSpringBootMechanism()` - Tests default values in Spring context
 
-3. **IncomingLoggingMessagePostProcessorTest** - Comprehensive unit tests for logging functionality
+3. **IncomingMessageLoggerTest** - Comprehensive unit tests for logging functionality using abstract class pattern
    - Basic functionality tests (enabled/disabled)
    - Content type handling tests (null, binary, readable types)
    - Body processing tests (truncation, empty)
@@ -124,6 +133,7 @@ All tests have been polished to maintain consistent style with proper JavaDoc:
 
 ## Code Quality
 - All tests pass (22/22)
+- Complete Javadoc documentation without any warnings
 - Consistent code style with proper JavaDoc
 - Proper error handling and logging
 - Maintains message integrity (doesn't modify original messages)

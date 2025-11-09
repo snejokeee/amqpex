@@ -12,12 +12,6 @@ public class AmqpexProperties {
     private final LoggingConfiguration logging = new LoggingConfiguration();
 
     /**
-     * Default constructor for AmqpexProperties.
-     */
-    public AmqpexProperties() {
-    }
-
-    /**
      * Gets the logging configuration.
      * @return the logging configuration
      */
@@ -30,12 +24,6 @@ public class AmqpexProperties {
      */
     public static class LoggingConfiguration {
         private final Incoming incoming = new Incoming();
-
-        /**
-         * Default constructor for LoggingConfiguration.
-         */
-        public LoggingConfiguration() {
-        }
 
         /**
          * Gets the incoming message logging configuration.
@@ -51,12 +39,6 @@ public class AmqpexProperties {
         public static class Incoming {
             private boolean enabled = true;
             private int maxBodySize = 1000;
-
-            /**
-             * Default constructor for Incoming.
-             */
-            public Incoming() {
-            }
 
             /**
              * Checks if incoming message logging is enabled.
