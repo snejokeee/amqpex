@@ -6,27 +6,69 @@ on:
   pull_request:
     branches: [ main, master ]
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
-  build:
-    name: Build and Test
+  test:
+    name: Test on Java ${{ matrix.java-version }}
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    strategy:
+      matrix:
+        java-version: [21]
+      fail-fast: false
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up JDK 21
+      - name: Set up JDK ${{ matrix.java-version }}
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
+          java-version: ${{ matrix.java-version }}
           distribution: 'temurin'
           cache: 'gradle'
 
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
-      - name: Build with Gradle
-        run: ./gradlew build --no-daemon
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v3
 
-      - name: Run tests
-        run: ./gradlew test --no-daemon
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: wrapper
+
+      - name: Build, test, and generate coverage
+        run: ./gradlew clean build test
+        env:
+          GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.parallel=true
+
+      - name: Test Report
+        uses: dorny/test-reporter@v2
+        if: always()
+        with:
+          name: Tests (Java ${{ matrix.java-version }})
+          path: build/test-results/junit/xml/*.xml
+          reporter: java-junit
+          fail-on-error: false
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-${{ matrix.java-version }}
+          path: build/reports/tests/**
+          retention-days: 30
+
+      - name: Upload coverage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports-${{ matrix.java-version }}
+          path: build/reports/jacoco/test/**
+          retention-days: 30

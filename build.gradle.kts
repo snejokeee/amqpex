@@ -1,5 +1,6 @@
 plugins {
     `java-library`
+    jacoco
     id("io.spring.dependency-management") version "1.1.7"
     id("com.vanniktech.maven.publish") version "0.34.0"
 }
@@ -46,10 +47,26 @@ dependencies {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+
+    reports {
+        html.required.set(true)
+        junitXml.required.set(true)
+        junitXml.outputLocation.set(project.layout.buildDirectory.dir("test-results/junit/xml"))
+    }
+
+    finalizedBy(tasks.jacocoTestReport)
 }
 
-tasks.withType<GenerateModuleMetadata>().configureEach {
-    dependsOn(tasks.named("plainJavadocJar"))
+jacoco {
+    toolVersion = "0.8.14"
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
 }
 
 mavenPublishing {
