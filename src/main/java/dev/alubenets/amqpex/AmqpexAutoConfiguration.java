@@ -10,4 +10,12 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 @AutoConfiguration
 @EnableConfigurationProperties({AmqpexProperties.class})
 public class AmqpexAutoConfiguration {
+
+    /**
+     * Creates a new instance of AmqpexAutoConfiguration.
+     * This constructor is used by Spring to instantiate the autoconfiguration.
+     */
+    public AmqpexAutoConfiguration() {
+        // Default constructor for Spring autoconfiguration
+    }
 }
