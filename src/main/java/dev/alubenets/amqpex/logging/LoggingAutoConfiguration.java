@@ -13,12 +13,28 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 
+/**
+ * Auto-configuration for logging incoming AMQP messages.
+ * Sets up the logging post-processor based on configuration properties.
+ */
 @AutoConfiguration
 @ConditionalOnClass(ConnectionFactory.class)
 public class LoggingAutoConfiguration {
 
     private static final Logger log = LoggerFactory.getLogger(LoggingAutoConfiguration.class);
 
+    /**
+     * Default constructor for LoggingAutoConfiguration.
+     */
+    public LoggingAutoConfiguration() {
+    }
+
+    /**
+     * Creates a container customizer that adds the incoming message logging post-processor.
+     *
+     * @param properties the AMQPex properties
+     * @return a container customizer for SimpleMessageListenerContainer
+     */
     @Bean
     @ConditionalOnProperty(
         prefix = "amqpex.logging.incoming",
