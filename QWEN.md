@@ -42,6 +42,7 @@ amqpex/
 │   │   │           ├── LoggingMessagePostProcessor.java
 │   │   │           ├── IncomingMessageLogger.java
 │   │   │           ├── OutgoingMessageLogger.java
+│   │   │           ├── HeaderFormatter.java
 │   │   │           └── LoggingAutoConfiguration.java
 │   │   └── resources/
 │   │       └── META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports
@@ -53,6 +54,7 @@ amqpex/
 │               └── logging/
 │                   ├── IncomingMessageLoggerTest.java
 │                   ├── OutgoingMessageLoggerTest.java
+│                   ├── HeaderFormatterTest.java
 │                   └── LoggingAutoConfigurationIntegrationTest.java
 ├── README.md
 ├── CONTRIBUTING.md
@@ -97,8 +99,9 @@ amqpex/
 ### Logging Package (`dev.alubenets.amqpex.logging`)
 - `LoggingMessagePostProcessor` (sealed abstract class) - Provides common functionality for message logging with sealed class pattern for controlled extensibility
 - `IncomingMessageLogger` - Concrete implementation for incoming message logging that extends the abstract base class
-- `OutgoingMessageLogger` - Concrete implementation for outgoing message logging that extends the abstract base class  
+- `OutgoingMessageLogger` - Concrete implementation for outgoing message logging that extends the abstract base class
 - `LoggingAutoConfiguration` - Configures the logging feature based on properties
+- `HeaderFormatter` - Utility class for formatting message headers with robust handling of different value types, recursion depth limiting, and string escaping
 
 ### Configuration Files
 - `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` - Registers auto-configurations
@@ -145,7 +148,12 @@ All tests have been polished to maintain consistent style with proper JavaDoc:
    - Message integrity tests (unchanged message, logging failure resilience)
    - Parameterized test for readable content types
 
-5. **LoggingAutoConfigurationIntegrationTest** - Integration test for auto-configuration
+5. **HeaderFormatterTest** - Unit tests for header formatting functionality
+   - Basic formatting tests (null, empty, string headers)
+   - Value type tests (different data types, lists, arrays)
+   - Complex formatting tests (nested structures, recursion depth)
+
+6. **LoggingAutoConfigurationIntegrationTest** - Integration test for auto-configuration
    - Tests that both incoming and outgoing logging post processors are correctly added to their respective containers when enabled
    - Tests that logging post processors are not added when disabled
 

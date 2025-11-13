@@ -71,7 +71,7 @@ abstract sealed class LoggingMessagePostProcessor
     private void logMessageDetails(Message message, String readableBody) {
         var messageProperties = message.getMessageProperties();
         var direction = getDirectionName();
-        var headers = shouldLogHeaders() ? messageProperties.getHeaders() : "[HIDDEN]";
+        var headers = shouldLogHeaders() ? HeaderFormatter.formatHeaders(messageProperties.getHeaders()) : "[HIDDEN]";
         log.debug(
             "{} Message - Exchange: '{}', RoutingKey: '{}', ContentType: '{}', Headers: {}, Body: {}",
             direction,

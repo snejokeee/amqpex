@@ -99,7 +99,7 @@ class IncomingMessageLoggerTest {
                 .orElseThrow(() -> new AssertionError("Expected main DEBUG event not found"));
 
             String expectedLogMessage = "INCOMING Message - Exchange: 'test-exchange', " +
-                "RoutingKey: 'test.routing.key', ContentType: 'application/json', Headers: {test-header=test-value}, Body: {\"key\":\"value\"}";
+                "RoutingKey: 'test.routing.key', ContentType: 'application/json', Headers: {test-header=\"test-value\"}, Body: {\"key\":\"value\"}";
             assertThat(debugEvent.getFormattedMessage()).isEqualTo(expectedLogMessage);
         }
 
@@ -471,8 +471,11 @@ class IncomingMessageLoggerTest {
 
             var result = processor.postProcessMessage(message);
 
-            assertThat(result).isSameAs(message);
-            assertThat(result.getBody()).isEqualTo(body);
+            assertThat(result)
+                .isSameAs(message)
+                .extracting(Message::getBody)
+                .isEqualTo(body);
+
             assertThat(result.getMessageProperties()).isSameAs(messageProps);
 
             List<ILoggingEvent> logEvents = listAppender.list;
@@ -501,4 +504,5 @@ class IncomingMessageLoggerTest {
             assertThat(logEvents).isNotEmpty();
         }
     }
+
 }
