@@ -17,11 +17,6 @@ import org.springframework.context.annotation.Bean;
  * Auto-configuration for logging incoming and outgoing AMQP messages.
  * Sets up the logging post-processors based on configuration properties.
  */
-
-/**
- * Auto-configuration for logging incoming and outgoing AMQP messages.
- * Sets up the logging post-processors based on configuration properties.
- */
 @AutoConfiguration(
     before = {RabbitAutoConfiguration.class}
 )

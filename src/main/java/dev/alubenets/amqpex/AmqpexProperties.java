@@ -24,49 +24,6 @@ import org.springframework.boot.context.properties.NestedConfigurationProperty;
  *       max-body-size: 2500
  * </pre>
  */
-/**
- * Configuration properties for AMQPex - Spring AMQP Extensions library.
- * <p>
- * Provides type-safe configuration for various AMQPex features. This class follows
- * Spring Boot's configuration properties pattern.
- * </p>
- *
- * <p>
- * Example configuration:
- * </p>
- * <pre>
- * amqpex:
- *   logging:
- *     incoming:
- *       enabled: true
- *       max-body-size: 1500
- *     outgoing:
- *       enabled: false
- *       max-body-size: 2500
- * </pre>
- */
-
-/**
- * Configuration properties for AMQPex - Spring AMQP Extensions library.
- * <p>
- * Provides type-safe configuration for various AMQPex features. This class follows
- * Spring Boot's configuration properties pattern.
- * </p>
- *
- * <p>
- * Example configuration:
- * </p>
- * <pre>
- * amqpex:
- *   logging:
- *     incoming:
- *       enabled: true
- *       max-body-size: 1500
- *     outgoing:
- *       enabled: false
- *       max-body-size: 2500
- * </pre>
- */
 @ConfigurationProperties(prefix = "amqpex")
 public class AmqpexProperties {
 

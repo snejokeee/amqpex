@@ -1,12 +1,11 @@
 plugins {
     `java-library`
     jacoco
-    id("io.spring.dependency-management") version "1.1.7"
-    id("com.vanniktech.maven.publish") version "0.34.0"
+    id("com.vanniktech.maven.publish") version "0.35.0"
 }
 
 group = "dev.alubenets"
-version = "0.0.1-SNAPSHOT"
+version = "0.0.2-SNAPSHOT"
 description =
     "A Spring AMQP Extensions library providing useful utilities and enhancements for RabbitMQ in Spring applications."
 
@@ -19,24 +18,24 @@ repositories {
     mavenCentral()
 }
 
-dependencyManagement {
-    imports {
-        mavenBom("org.springframework.boot:spring-boot-dependencies:3.5.7")
-    }
-}
+val springBootVersion = "[3.3.0,4.0.0)"
+val springAmqpVersion = "[3.1.5,3.2]"
+val sl4fjVersion = "[2.0.13,2.1)"
+val rabbitClientVersion = "[5.21.0,5.25]"
 
 dependencies {
-    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor:$springBootVersion")
+    compileOnly("org.springframework.boot:spring-boot-configuration-processor:$springBootVersion")
 
-    implementation("org.springframework.boot:spring-boot-autoconfigure")
-    implementation("org.springframework.amqp:spring-amqp")
-    implementation("org.springframework.amqp:spring-rabbit")
-    implementation("org.springframework:spring-context")
-    implementation("org.slf4j:slf4j-api:2.0.16")
-    implementation("jakarta.annotation:jakarta.annotation-api:2.1.1")
+    compileOnly("com.rabbitmq:amqp-client:$rabbitClientVersion")
 
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.springframework.amqp:spring-rabbit-test")
+    api("org.springframework.boot:spring-boot-autoconfigure:$springBootVersion")
+    api("org.springframework.amqp:spring-rabbit:$springAmqpVersion")
+    api("org.springframework.amqp:spring-amqp:$springAmqpVersion")
+    api("org.slf4j:slf4j-api:$sl4fjVersion")
+
+    testImplementation("org.springframework.boot:spring-boot-starter-test:$springBootVersion")
+    testImplementation("org.springframework.amqp:spring-rabbit-test:$springAmqpVersion")
     testImplementation("org.mockito:mockito-core:5.14.2")
     testImplementation("org.mockito:mockito-junit-jupiter:5.14.2")
     testImplementation("org.junit.jupiter:junit-jupiter-api")
