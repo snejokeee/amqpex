@@ -7,18 +7,20 @@ This library provides useful extensions and enhancements for Spring AMQP, aiming
 ## Current Features
 
 ### 1. Incoming Message Logging
-- **Automatic Logging**: Logs exchange, routing key, message properties, and message body for readable formats (JSON, XML, text)
+- **Automatic Logging**: Logs exchange, routing key, message headers, message properties, and message body for readable formats (JSON, XML, text)
 - **Configuration Options**:
   - `amqpex.logging.incoming.enabled` (default: true) - Enable/disable the logging feature
   - `amqpex.logging.incoming.maxBodySize` (default: 1000) - Maximum body size to log (prevents log flooding)
+  - `amqpex.logging.incoming.log-headers` (default: true) - Enable/disable header logging
 - **Robust Processing**: Handles character encoding properly and gracefully handles logging failures without disrupting message flow
 - **Performance Conscious**: Runs with the highest precedence to capture original message state while only logging when debug level is enabled
 
 ### 2. Outgoing Message Logging
-- **Automatic Logging**: Logs exchange, routing key, message properties, and message body for readable formats (JSON, XML, text) for outgoing messages
+- **Automatic Logging**: Logs exchange, routing key, message headers, message properties, and message body for readable formats (JSON, XML, text) for outgoing messages
 - **Configuration Options**:
   - `amqpex.logging.outgoing.enabled` (default: true) - Enable/disable the logging feature
   - `amqpex.logging.outgoing.maxBodySize` (default: 1000) - Maximum body size to log (prevents log flooding)
+  - `amqpex.logging.outgoing.log-headers` (default: true) - Enable/disable header logging
 - **Robust Processing**: Handles character encoding properly and gracefully handles logging failures without disrupting message flow
 - **Performance Conscious**: Runs with the lowest precedence to capture final message state before sending while only logging when debug level is enabled
 
@@ -38,9 +40,11 @@ amqpex:
     incoming:
       enabled: true
       max-body-size: 1000
+      log-headers: true
     outgoing:
       enabled: true
       max-body-size: 1000
+      log-headers: true
 ```
 
 Or via properties:
@@ -48,8 +52,10 @@ Or via properties:
 ```properties
 amqpex.logging.incoming.enabled=true
 amqpex.logging.incoming.max-body-size=1000
+amqpex.logging.incoming.log-headers=true
 amqpex.logging.outgoing.enabled=true
 amqpex.logging.outgoing.max-body-size=1000
+amqpex.logging.outgoing.log-headers=true
 ```
 
 The library uses Spring Boot's autoconfiguration, so simply adding it to your project will enable the logging functionality automatically if the conditions are met.
@@ -74,7 +80,7 @@ The library uses a well-designed abstract class pattern with Java 21's sealed cl
 *   **Java**: Java 21
 *   **Framework**: Spring Boot 3.5.7
 *   **Build**: Gradle (Kotlin DSL)
-*   **Dependencies**: Spring AMQP, Spring Rabbit, SLF4J API
+*   **Dependencies**: Spring AMQP, Spring Rabbit, SLF4J API (with proper Maven/Gradle scopes for library consumers)
 *   **Testing**: JUnit 5, Mockito, AssertJ
 
 ## Development Workflow

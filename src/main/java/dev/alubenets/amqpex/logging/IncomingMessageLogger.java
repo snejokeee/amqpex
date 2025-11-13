@@ -15,6 +15,7 @@ public final class IncomingMessageLogger
 
     private static final Logger DEFAULT_LOG = LoggerFactory.getLogger(IncomingMessageLogger.class);
     private final boolean enabled;
+    private final boolean logHeaders;
 
     /**
      * Constructor for IncomingMessageLogger with default logger.
@@ -37,6 +38,7 @@ public final class IncomingMessageLogger
     ) {
         super(customLogger, properties.getMaxBodySize());
         this.enabled = properties.isEnabled();
+        this.logHeaders = properties.isLogHeaders();
     }
 
     @Override
@@ -47,6 +49,11 @@ public final class IncomingMessageLogger
     @Override
     protected String getDirectionName() {
         return "INCOMING";
+    }
+
+    @Override
+    protected boolean shouldLogHeaders() {
+        return logHeaders;
     }
 
     @Override

@@ -12,14 +12,14 @@ AMQPex is a Spring AMQP Extensions library that provides useful extensions and e
 
 ## Key Features
 1. **Incoming Message Logging**:
-   - Logs exchange, routing key, message properties, and message body for readable formats (JSON, XML, text)
-   - Configurable via `amqpex.logging.incoming.enabled` and `amqpex.logging.incoming.maxBodySize`
+   - Logs exchange, routing key, message headers, message properties, and message body for readable formats (JSON, XML, text)
+   - Configurable via `amqpex.logging.incoming.enabled`, `amqpex.logging.incoming.maxBodySize`, and `amqpex.logging.incoming.logHeaders`
    - Runs with highest precedence to capture original message state
    - Handles character encoding and body truncation to prevent log flooding
 
 2. **Outgoing Message Logging**:
-   - Logs exchange, routing key, message properties, and message body for readable formats (JSON, XML, text)
-   - Configurable via `amqpex.logging.outgoing.enabled` and `amqpex.logging.outgoing.maxBodySize`
+   - Logs exchange, routing key, message headers, message properties, and message body for readable formats (JSON, XML, text)
+   - Configurable via `amqpex.logging.outgoing.enabled`, `amqpex.logging.outgoing.maxBodySize`, and `amqpex.logging.outgoing.logHeaders`
    - Runs with lowest precedence to capture final message state before sending
    - Handles character encoding and body truncation to prevent log flooding
 
@@ -61,22 +61,24 @@ amqpex/
 
 ## Implemented Features
 1. **Incoming Message Logging**:
-   - Logs exchange, routing key, message properties, and message body for readable formats (JSON, XML, text)
-   - Configurable via `amqpex.logging.incoming.enabled` and `amqpex.logging.incoming.maxBodySize`
+   - Logs exchange, routing key, message headers, message properties, and message body for readable formats (JSON, XML, text)
+   - Configurable via `amqpex.logging.incoming.enabled`, `amqpex.logging.incoming.maxBodySize`, and `amqpex.logging.incoming.logHeaders`
    - Runs with highest precedence to capture original message state
    - Handles character encoding and body truncation to prevent log flooding
 
 2. **Outgoing Message Logging**:
-   - Logs exchange, routing key, message properties, and message body for readable formats (JSON, XML, text)
-   - Configurable via `amqpex.logging.outgoing.enabled` and `amqpex.logging.outgoing.maxBodySize`
+   - Logs exchange, routing key, message headers, message properties, and message body for readable formats (JSON, XML, text)
+   - Configurable via `amqpex.logging.outgoing.enabled`, `amqpex.logging.outgoing.maxBodySize`, and `amqpex.logging.outgoing.logHeaders`
    - Runs with lowest precedence to capture final message state before sending
    - Handles character encoding and body truncation to prevent log flooding
 
 ## Configuration Properties
 - `amqpex.logging.incoming.enabled` (default: true) - Enable/disable incoming message logging
 - `amqpex.logging.incoming.maxBodySize` (default: 1000) - Maximum body size to log for incoming messages
-- `amqpex.logging.outgoing.enabled` (default: true) - Enable/disable outgoing message logging 
+- `amqpex.logging.incoming.logHeaders` (default: true) - Enable/disable header logging for incoming messages
+- `amqpex.logging.outgoing.enabled` (default: true) - Enable/disable outgoing message logging
 - `amqpex.logging.outgoing.maxBodySize` (default: 1000) - Maximum body size to log for outgoing messages
+- `amqpex.logging.outgoing.logHeaders` (default: true) - Enable/disable header logging for outgoing messages
 
 ## Architecture Pattern
 - Abstract base class pattern using sealed classes for controlled extensibility
@@ -90,7 +92,7 @@ amqpex/
 
 ### Main Package (`dev.alubenets.amqpex`)
 - `AmqpexAutoConfiguration` - Main Spring auto-configuration class that enables the extensions
-- `AmqpexProperties` - Configuration properties class with nested structure for type-safe property binding
+- `AmqpexProperties` - Configuration properties class with nested structure for type-safe property binding, including header logging options
 
 ### Logging Package (`dev.alubenets.amqpex.logging`)
 - `LoggingMessagePostProcessor` (sealed abstract class) - Provides common functionality for message logging with sealed class pattern for controlled extensibility
@@ -102,11 +104,18 @@ amqpex/
 - `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports` - Registers auto-configurations
 
 ## Dependencies
-- Spring Boot 3.5.7
-- Spring AMQP
-- Spring Rabbit
-- SLF4J API
+- Spring Boot 3.5.7 (api scope) - provides auto-configuration and configuration properties support
+- Spring AMQP (api scope) - core dependency for AMQP functionality, provides interfaces like MessagePostProcessor
+- Spring Rabbit (api scope) - provides RabbitTemplate and other RabbitMQ-specific functionality
+- SLF4J API (api scope) - logging facade required for users to see logs from the library
+- RabbitMQ Client (compileOnly scope) - dependency only required when user has RabbitMQ in their classpath
 - JUnit 5, Mockito, AssertJ for testing
+
+## Dependency Management
+The project follows proper library dependency management practices to ensure correct transitive dependencies for users:
+- **api scope**: Used for dependencies that form part of the library's public API or are required for the library to function properly when used by others (e.g., SLF4J API, Spring AMQP)
+- **compileOnly scope**: Used for dependencies needed at compile time but that should not be passed to library consumers (e.g., RabbitMQ Client, which is used in conditional annotations)
+- **implementation scope**: Used for internal dependencies that are not part of the public API
 
 ## Test Coverage
 All tests have been polished to maintain consistent style with proper JavaDoc:

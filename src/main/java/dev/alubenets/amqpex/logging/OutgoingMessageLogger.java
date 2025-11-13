@@ -15,6 +15,7 @@ public final class OutgoingMessageLogger
 
     private static final Logger DEFAULT_LOG = LoggerFactory.getLogger(OutgoingMessageLogger.class);
     private final boolean enabled;
+    private final boolean logHeaders;
 
     /**
      * Constructor for OutgoingMessageLogger with default logger.
@@ -37,6 +38,7 @@ public final class OutgoingMessageLogger
     ) {
         super(customLogger, properties.getMaxBodySize());
         this.enabled = properties.isEnabled();
+        this.logHeaders = properties.isLogHeaders();
     }
 
     @Override
@@ -47,6 +49,11 @@ public final class OutgoingMessageLogger
     @Override
     protected String getDirectionName() {
         return "OUTGOING";
+    }
+
+    @Override
+    protected boolean shouldLogHeaders() {
+        return logHeaders;
     }
 
     @Override
