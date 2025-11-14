@@ -7,8 +7,9 @@ AMQPex is a Spring AMQP Extensions library that provides useful extensions and e
 - **Build System**: Gradle (Kotlin DSL)
 - **Language**: Java 21
 - **Framework**: Spring Boot 3.5.7
-- **Status**: Production ready with comprehensive test coverage 
+- **Status**: Production ready with comprehensive test coverage, available on Maven Central
 - **Current Features**: Incoming and outgoing message logging with configuration options
+- **Current Version**: 0.0.2
 
 ## Key Features
 1. **Incoming Message Logging**:

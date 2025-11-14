@@ -1,5 +1,7 @@
 # Amqpex
 
+[![Maven Central](https://img.shields.io/maven-central/v/dev.alubenets/amqpex.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/dev.alubenets/amqpex)
+
 Spring AMQP Extensions Library
 
 This library provides useful extensions and enhancements for Spring AMQP, aiming to simplify common tasks and improve developer experience when working with RabbitMQ in Spring applications.
@@ -28,7 +30,21 @@ This library provides useful extensions and enhancements for Spring AMQP, aiming
 
 ### Adding the Dependency
 
-The library is currently available as a local build. Publication to Maven Central is planned for the next release.
+The library is available on Maven Central. Add it to your project using:
+
+**Maven:**
+```xml
+<dependency>
+    <groupId>dev.alubenets</groupId>
+    <artifactId>amqpex</artifactId>
+    <version>0.0.2</version>
+</dependency>
+```
+
+**Gradle:**
+```kotlin
+implementation("dev.alubenets:amqpex:0.0.2")
+```
 
 ### Basic Configuration
 
