@@ -55,6 +55,13 @@ abstract sealed class LoggingMessagePostProcessor
     protected abstract String getDirectionName();
 
     /**
+     * Checks if headers should be logged for this processor.
+     *
+     * @return true if headers should be logged, false otherwise
+     */
+    protected abstract boolean shouldLogHeaders();
+
+    /**
      * Logs the details of the message for the specific direction.
      * This method is final to prevent overriding and ensure consistent logging format.
      *
@@ -64,12 +71,14 @@ abstract sealed class LoggingMessagePostProcessor
     private void logMessageDetails(Message message, String readableBody) {
         var messageProperties = message.getMessageProperties();
         var direction = getDirectionName();
+        var headers = shouldLogHeaders() ? HeaderFormatter.formatHeaders(messageProperties.getHeaders()) : "[HIDDEN]";
         log.debug(
-            "{} Message - Exchange: '{}', RoutingKey: '{}', ContentType: '{}', Body: {}",
+            "{} Message - Exchange: '{}', RoutingKey: '{}', ContentType: '{}', Headers: {}, Body: {}",
             direction,
             messageProperties.getReceivedExchange(),
             messageProperties.getReceivedRoutingKey(),
             messageProperties.getContentType(),
+            headers,
             readableBody != null ? truncateBody(readableBody) : "<Non-readable body>"
         );
     }

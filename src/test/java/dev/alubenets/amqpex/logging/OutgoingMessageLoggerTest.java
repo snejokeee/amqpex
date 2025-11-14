@@ -71,7 +71,7 @@ class OutgoingMessageLoggerTest {
         /**
          * Tests that message details are properly logged when debug is enabled and the body is readable.
          * <p>
-         * Verifies that exchange, routing key, content type, and body content are all logged correctly
+         * Verifies that exchange, routing key, content type, headers, and body content are all logged correctly
          * when the logging feature is enabled and the message contains readable content.
          */
         @Test
@@ -80,6 +80,7 @@ class OutgoingMessageLoggerTest {
             messageProps.setContentType("application/json");
             messageProps.setReceivedExchange("test-exchange");
             messageProps.setReceivedRoutingKey("test.routing.key");
+            messageProps.setHeader("test-header", "test-value");
 
             var body = "{\"key\":\"value\"}".getBytes();
             var message = new Message(body, messageProps);
@@ -98,7 +99,7 @@ class OutgoingMessageLoggerTest {
                 .orElseThrow(() -> new AssertionError("Expected main DEBUG event not found"));
 
             String expectedLogMessage = "OUTGOING Message - Exchange: 'test-exchange', " +
-                "RoutingKey: 'test.routing.key', ContentType: 'application/json', Body: {\"key\":\"value\"}";
+                "RoutingKey: 'test.routing.key', ContentType: 'application/json', Headers: {test-header=\"test-value\"}, Body: {\"key\":\"value\"}";
             assertThat(debugEvent.getFormattedMessage()).isEqualTo(expectedLogMessage);
         }
 
@@ -121,6 +122,43 @@ class OutgoingMessageLoggerTest {
 
             assertThat(result).isSameAs(message);
             assertThat(listAppender.list).isEmpty();
+        }
+
+        /**
+         * Tests that headers are not logged when header logging is disabled.
+         * <p>
+         * Verifies that when the logHeaders property is set to false, headers are hidden in logs.
+         */
+        @Test
+        void shouldHideHeadersWhenHeaderLoggingDisabled() {
+            outgoingProps.setLogHeaders(false);
+            processor = new OutgoingMessageLogger(outgoingProps);
+
+            var messageProps = new MessageProperties();
+            messageProps.setContentType("application/json");
+            messageProps.setReceivedExchange("test-exchange");
+            messageProps.setReceivedRoutingKey("test.routing.key");
+            messageProps.setHeader("test-header", "test-value");
+
+            var body = "{\"key\":\"value\"}".getBytes();
+            var message = new Message(body, messageProps);
+
+            var result = processor.postProcessMessage(message);
+
+            assertThat(result).isSameAs(message);
+
+            List<ILoggingEvent> logEvents = listAppender.list;
+            assertThat(logEvents).isNotEmpty();
+
+            ILoggingEvent debugEvent = logEvents.stream()
+                .filter(event -> event.getLevel() == Level.DEBUG)
+                .filter(event -> event.getFormattedMessage().startsWith("OUTGOING Message"))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Expected main DEBUG event not found"));
+
+            String expectedLogMessage = "OUTGOING Message - Exchange: 'test-exchange', " +
+                "RoutingKey: 'test.routing.key', ContentType: 'application/json', Headers: [HIDDEN], Body: {\"key\":\"value\"}";
+            assertThat(debugEvent.getFormattedMessage()).isEqualTo(expectedLogMessage);
         }
 
         /**
@@ -193,7 +231,7 @@ class OutgoingMessageLoggerTest {
                 .orElseThrow(() -> new AssertionError("Expected main DEBUG event not found"));
 
             String expectedLogMessage = String.format(
-                "OUTGOING Message - Exchange: 'null', RoutingKey: 'null', ContentType: '%s', Body: <Non-readable body>",
+                "OUTGOING Message - Exchange: 'null', RoutingKey: 'null', ContentType: '%s', Headers: {}, Body: <Non-readable body>",
                 expectedContentType);
             assertThat(debugEvent.getFormattedMessage()).isEqualTo(expectedLogMessage);
         }
@@ -237,7 +275,7 @@ class OutgoingMessageLoggerTest {
                 .orElseThrow(() -> new AssertionError("Expected main DEBUG event not found"));
 
             String expectedLogMessage = String.format(
-                "OUTGOING Message - Exchange: 'null', RoutingKey: 'null', ContentType: '%s', Body: %s",
+                "OUTGOING Message - Exchange: 'null', RoutingKey: 'null', ContentType: '%s', Headers: {}, Body: %s",
                 contentType, bodyContent);
             assertThat(debugEvent.getFormattedMessage()).isEqualTo(expectedLogMessage);
         }
@@ -278,7 +316,7 @@ class OutgoingMessageLoggerTest {
                 .orElseThrow(() -> new AssertionError("Expected main DEBUG event not found"));
 
             String expectedLogMessage = "OUTGOING Message - Exchange: 'null', RoutingKey: 'null', " +
-                "ContentType: 'text/plain', Body: This is a [TRUNCATED]";
+                "ContentType: 'text/plain', Headers: {}, Body: This is a [TRUNCATED]";
             assertThat(debugEvent.getFormattedMessage()).isEqualTo(expectedLogMessage);
         }
 
@@ -307,7 +345,7 @@ class OutgoingMessageLoggerTest {
                 .orElseThrow(() -> new AssertionError("Expected main DEBUG event not found"));
 
             String expectedLogMessage = "OUTGOING Message - Exchange: 'null', RoutingKey: 'null', " +
-                "ContentType: 'application/json', Body: <Empty>";
+                "ContentType: 'application/json', Headers: {}, Body: <Empty>";
             assertThat(debugEvent.getFormattedMessage()).isEqualTo(expectedLogMessage);
         }
     }
@@ -345,7 +383,7 @@ class OutgoingMessageLoggerTest {
                 .orElseThrow(() -> new AssertionError("Expected main DEBUG event not found"));
 
             String actualLogMessage = debugEvent.getFormattedMessage();
-            assertThat(actualLogMessage).startsWith("OUTGOING Message - Exchange: 'null', RoutingKey: 'null', ContentType: 'text/plain', Body: ");
+            assertThat(actualLogMessage).startsWith("OUTGOING Message - Exchange: 'null', RoutingKey: 'null', ContentType: 'text/plain', Headers: {}, Body: ");
         }
 
         /**
@@ -376,7 +414,7 @@ class OutgoingMessageLoggerTest {
                 .orElseThrow(() -> new AssertionError("Expected main DEBUG event not found"));
 
             String expectedLogMessage = "OUTGOING Message - Exchange: 'null', RoutingKey: 'null', " +
-                "ContentType: 'text/plain', Body: Café";
+                "ContentType: 'text/plain', Headers: {}, Body: Café";
             assertThat(debugEvent.getFormattedMessage()).isEqualTo(expectedLogMessage);
         }
 
@@ -408,7 +446,7 @@ class OutgoingMessageLoggerTest {
                 .orElseThrow(() -> new AssertionError("Expected main DEBUG event not found"));
 
             String expectedLogMessage = "OUTGOING Message - Exchange: 'null', RoutingKey: 'null', " +
-                "ContentType: 'text/plain', Body: some text";
+                "ContentType: 'text/plain', Headers: {}, Body: some text";
             assertThat(mainEvent.getFormattedMessage()).isEqualTo(expectedLogMessage);
         }
     }
@@ -433,8 +471,11 @@ class OutgoingMessageLoggerTest {
 
             var result = processor.postProcessMessage(message);
 
-            assertThat(result).isSameAs(message);
-            assertThat(result.getBody()).isEqualTo(body);
+            assertThat(result)
+                .isSameAs(message)
+                .extracting(Message::getBody)
+                .isEqualTo(body);
+
             assertThat(result.getMessageProperties()).isSameAs(messageProps);
 
             List<ILoggingEvent> logEvents = listAppender.list;
@@ -463,4 +504,5 @@ class OutgoingMessageLoggerTest {
             assertThat(logEvents).isNotEmpty();
         }
     }
+
 }

@@ -19,52 +19,11 @@ import org.springframework.boot.context.properties.NestedConfigurationProperty;
  *     incoming:
  *       enabled: true
  *       max-body-size: 1500
+ *       log-headers: true
  *     outgoing:
  *       enabled: false
  *       max-body-size: 2500
- * </pre>
- */
-/**
- * Configuration properties for AMQPex - Spring AMQP Extensions library.
- * <p>
- * Provides type-safe configuration for various AMQPex features. This class follows
- * Spring Boot's configuration properties pattern.
- * </p>
- *
- * <p>
- * Example configuration:
- * </p>
- * <pre>
- * amqpex:
- *   logging:
- *     incoming:
- *       enabled: true
- *       max-body-size: 1500
- *     outgoing:
- *       enabled: false
- *       max-body-size: 2500
- * </pre>
- */
-
-/**
- * Configuration properties for AMQPex - Spring AMQP Extensions library.
- * <p>
- * Provides type-safe configuration for various AMQPex features. This class follows
- * Spring Boot's configuration properties pattern.
- * </p>
- *
- * <p>
- * Example configuration:
- * </p>
- * <pre>
- * amqpex:
- *   logging:
- *     incoming:
- *       enabled: true
- *       max-body-size: 1500
- *     outgoing:
- *       enabled: false
- *       max-body-size: 2500
+ *       log-headers: true
  * </pre>
  */
 @ConfigurationProperties(prefix = "amqpex")
@@ -133,6 +92,7 @@ public class AmqpexProperties {
         public static class Incoming {
             private boolean enabled = true;
             private int maxBodySize = 1000;
+            private boolean logHeaders = true;
 
             /**
              * Creates a new instance of Incoming logging configuration with default values.
@@ -177,6 +137,24 @@ public class AmqpexProperties {
             public void setMaxBodySize(int maxBodySize) {
                 this.maxBodySize = maxBodySize;
             }
+
+            /**
+             * Checks if header logging is enabled.
+             *
+             * @return {@code true} if header logging is enabled, {@code false} otherwise
+             */
+            public boolean isLogHeaders() {
+                return logHeaders;
+            }
+
+            /**
+             * Sets whether header logging is enabled.
+             *
+             * @param logHeaders {@code true} to enable header logging, {@code false} to disable
+             */
+            public void setLogHeaders(boolean logHeaders) {
+                this.logHeaders = logHeaders;
+            }
         }
 
         /**
@@ -186,6 +164,7 @@ public class AmqpexProperties {
         public static class Outgoing {
             private boolean enabled = true;
             private int maxBodySize = 1000;
+            private boolean logHeaders = true;
 
             /**
              * Creates a new instance of Outgoing logging configuration with default values.
@@ -229,6 +208,24 @@ public class AmqpexProperties {
              */
             public void setMaxBodySize(int maxBodySize) {
                 this.maxBodySize = maxBodySize;
+            }
+
+            /**
+             * Checks if header logging is enabled.
+             *
+             * @return {@code true} if header logging is enabled, {@code false} otherwise
+             */
+            public boolean isLogHeaders() {
+                return logHeaders;
+            }
+
+            /**
+             * Sets whether header logging is enabled.
+             *
+             * @param logHeaders {@code true} to enable header logging, {@code false} to disable
+             */
+            public void setLogHeaders(boolean logHeaders) {
+                this.logHeaders = logHeaders;
             }
         }
     }

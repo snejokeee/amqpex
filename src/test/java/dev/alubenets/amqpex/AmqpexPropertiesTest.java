@@ -19,6 +19,10 @@ class AmqpexPropertiesTest {
 
     @Nested
     class DefaultValues {
+        /**
+         * Tests that default values are applied for incoming configuration when properties are not bound.
+         * Verifies that enabled is true and maxBodySize is 1000 by default.
+         */
         @Test
         void shouldUseDefaultValuesForIncomingWhenNotBoundUsingDataBinder() {
             var properties = new AmqpexProperties();
@@ -29,6 +33,10 @@ class AmqpexPropertiesTest {
             assertThat(properties.getLogging().getIncoming().getMaxBodySize()).isEqualTo(1000);
         }
 
+        /**
+         * Tests that default values are applied for outgoing configuration when properties are not bound.
+         * Verifies that enabled is true and maxBodySize is 1000 by default.
+         */
         @Test
         void shouldUseDefaultValuesForOutgoingWhenNotBoundUsingDataBinder() {
             var properties = new AmqpexProperties();
@@ -42,6 +50,10 @@ class AmqpexPropertiesTest {
 
     @Nested
     class IncomingConfigurationBinding {
+        /**
+         * Tests that custom values are correctly bound for incoming configuration when using DataBinder.
+         * Verifies that enabled and maxBodySize properties are set according to the provided values.
+         */
         @Test
         void shouldBindCustomValuesForIncomingUsingDataBinder() {
             var properties = new AmqpexProperties();
@@ -60,6 +72,10 @@ class AmqpexPropertiesTest {
             assertThat(properties.getLogging().getIncoming().getMaxBodySize()).isEqualTo(2000);
         }
 
+        /**
+         * Tests that custom values are correctly bound for incoming configuration when using DataBinder with a Map.
+         * Verifies that enabled and maxBodySize properties are set according to the provided values.
+         */
         @Test
         void shouldBindCustomValuesForIncomingUsingDataBinderWithMap() {
             var properties = new AmqpexProperties();
@@ -81,6 +97,10 @@ class AmqpexPropertiesTest {
 
     @Nested
     class OutgoingConfigurationBinding {
+        /**
+         * Tests that custom values are correctly bound for outgoing configuration when using DataBinder.
+         * Verifies that enabled and maxBodySize properties are set according to the provided values.
+         */
         @Test
         void shouldBindCustomValuesForOutgoingUsingDataBinder() {
             var properties = new AmqpexProperties();
@@ -99,6 +119,10 @@ class AmqpexPropertiesTest {
             assertThat(properties.getLogging().getOutgoing().getMaxBodySize()).isEqualTo(2500);
         }
 
+        /**
+         * Tests that custom values are correctly bound for outgoing configuration when using DataBinder with a Map.
+         * Verifies that enabled and maxBodySize properties are set according to the provided values.
+         */
         @Test
         void shouldBindCustomValuesForOutgoingUsingDataBinderWithMap() {
             var properties = new AmqpexProperties();
@@ -120,6 +144,10 @@ class AmqpexPropertiesTest {
 
     @Nested
     class BothDirectionsConfiguration {
+        /**
+         * Tests that custom values are correctly bound for both incoming and outgoing configurations when using DataBinder with a Map.
+         * Verifies that properties for both directions are set according to the provided values.
+         */
         @Test
         void shouldBindCustomValuesForBothDirectionsUsingDataBinderWithMap() {
             var properties = new AmqpexProperties();
@@ -145,6 +173,10 @@ class AmqpexPropertiesTest {
 
     @Nested
     class ValueChangeSupport {
+        /**
+         * Tests that property values can be changed at runtime after binding.
+         * Verifies that properties can be updated after initial binding and values are correctly reflected.
+         */
         @Test
         void shouldSupportRuntimeValueChanges() {
             var properties = new AmqpexProperties();
@@ -170,6 +202,10 @@ class AmqpexPropertiesTest {
 
     @Nested
     class BooleanProperties {
+        /**
+         * Tests that boolean properties are correctly handled during binding.
+         * Verifies that true and false boolean values are properly parsed and set.
+         */
         @Test
         void shouldHandleBooleanPropertiesCorrectly() {
             var properties = new AmqpexProperties();

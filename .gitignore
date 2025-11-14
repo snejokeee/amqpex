@@ -31,3 +31,6 @@ Thumbs.db
 
 # Local Gradle properties (for credentials, etc.)
 gradle.properties
+
+## Do not push QWEN context
+.qwen
