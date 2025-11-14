@@ -17,12 +17,12 @@ import java.util.StringJoiner;
  *   <li>Collection formatting with proper element handling</li>
  *   <li>String quoting to distinguish text values</li>
  *   <li>Recursion depth limiting to prevent StackOverflowErrors</li>
+ *   <li>Collection size limiting to prevent log flooding</li>
  *   <li>Thread-safe utility methods</li>
  * </ul>
  */
 final class HeaderFormatter {
 
-    // Constants for better maintainability and performance
     private static final String NULL_STRING = "null";
     private static final String EMPTY_HEADERS = "{}";
     private static final String TRUNCATED_HEADERS = "{...}";
@@ -30,9 +30,8 @@ final class HeaderFormatter {
     private static final String ENTRY_SEPARATOR = ", ";
     private static final String KEY_VALUE_SEPARATOR = "=";
 
-    // Configuration constants
-    private static final int MAX_RECURSION_DEPTH = 10;
-    private static final int MAX_COLLECTION_ELEMENTS = 100; // Prevent huge collections from overwhelming logs
+    private static final int MAX_RECURSION_DEPTH = 5;
+    private static final int MAX_COLLECTION_ELEMENTS = 100;
 
     /**
      * Private constructor to prevent instantiation of this utility class.
@@ -69,9 +68,9 @@ final class HeaderFormatter {
             return EMPTY_HEADERS;
         }
 
-        StringJoiner joiner = new StringJoiner(ENTRY_SEPARATOR, "{", "}");
+        var joiner = new StringJoiner(ENTRY_SEPARATOR, "{", "}");
 
-        for (Map.Entry<String, Object> entry : headers.entrySet()) {
+        for (var entry : headers.entrySet()) {
             String key = entry.getKey();
             Object value = entry.getValue();
             joiner.add(key + KEY_VALUE_SEPARATOR + formatHeaderValue(value, depth + 1));
@@ -92,20 +91,20 @@ final class HeaderFormatter {
             return NULL_STRING;
         }
 
-        Class<?> valueClass = value.getClass();
+        var valueClass = value.getClass();
 
         if (valueClass.isArray()) {
             return formatArray(value);
         } else if (value instanceof Map) {
             @SuppressWarnings("unchecked")
-            Map<String, Object> nestedMap = (Map<String, Object>) value;
+            var nestedMap = (Map<String, Object>) value;
             return formatHeaders(nestedMap, depth);
         } else if (value instanceof Collection) {
             return formatCollection((Collection<?>) value, depth);
         } else if (value instanceof CharSequence) {
-            return "\"" + escapeString(value.toString()) + "\"";
+            return "\"" + value + "\"";
         } else if (value instanceof Character ch) {
-            return "'" + escapeChar(ch) + "'";
+            return "'" + ch + "'";
         }
 
         return value.toString();
@@ -118,7 +117,7 @@ final class HeaderFormatter {
      * @return formatted string representation of the array
      */
     private static String formatArray(Object array) {
-        Class<?> componentType = array.getClass().getComponentType();
+        var componentType = array.getClass().getComponentType();
 
         if (componentType == boolean.class) {
             return Arrays.toString((boolean[]) array);
@@ -153,12 +152,12 @@ final class HeaderFormatter {
             return EMPTY_COLLECTION;
         }
 
-        StringJoiner joiner = new StringJoiner(", ", "[", "]");
+        var joiner = new StringJoiner(", ", "[", "]");
         int elementCount = 0;
 
-        for (Object element : collection) {
+        for (var element : collection) {
             if (elementCount >= MAX_COLLECTION_ELEMENTS) {
-                joiner.add("..."); // Truncate very large collections
+                joiner.add("...");
                 break;
             }
             joiner.add(formatHeaderValue(element, depth + 1));
@@ -168,38 +167,4 @@ final class HeaderFormatter {
         return joiner.toString();
     }
 
-    /**
-     * Escapes special characters in strings for better readability in logs.
-     *
-     * @param str the string to escape
-     * @return the escaped string
-     */
-    private static String escapeString(String str) {
-        if (str == null) {
-            return NULL_STRING;
-        }
-
-        return str.replace("\\", "\\\\")
-            .replace("\"", "\\\"")
-            .replace("\n", "\\n")
-            .replace("\r", "\\r")
-            .replace("\t", "\\t");
-    }
-
-    /**
-     * Escapes special characters for character representation.
-     *
-     * @param ch the character to escape
-     * @return the escaped character representation
-     */
-    private static String escapeChar(char ch) {
-        return switch (ch) {
-            case '\\' -> "\\\\";
-            case '\'' -> "\\'";
-            case '\n' -> "\\n";
-            case '\r' -> "\\r";
-            case '\t' -> "\\t";
-            default -> String.valueOf(ch);
-        };
-    }
 }

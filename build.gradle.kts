@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "dev.alubenets"
-version = "0.0.2-SNAPSHOT"
+version = "0.0.2"
 description =
     "A Spring AMQP Extensions library providing useful utilities and enhancements for RabbitMQ in Spring applications."
 

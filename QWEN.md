@@ -177,9 +177,20 @@ All tests have been polished to maintain consistent style with proper JavaDoc:
 - Employs proper separation of concerns with dedicated packages
 
 ## Code Quality
-- All tests pass 
+- All tests pass
 - Complete Javadoc documentation without any warnings
 - Consistent code style with proper JavaDoc
 - Proper error handling and logging
 - Maintains message integrity (doesn't modify original messages)
 - Resilient to logging subsystem failures
+
+## Recent Changes (Version 0.0.2)
+- Added header logging functionality for both incoming and outgoing messages
+- Added new configuration options: `amqpex.logging.incoming.logHeaders` and `amqpex.logging.outgoing.logHeaders` to control header logging
+- Added comprehensive array formatting tests for all primitive types in header formatter
+- Added deep nesting tests with proper truncation when exceeding max depth
+- Reduced max recursion depth from 10 to 5 in header formatter for better safety
+- Removed escaping functionality from header formatter for simplicity (will add back in future release if needed)
+- Removed all inline comments inside method bodies for cleaner code
+- Added proper Javadoc to all test methods
+- Added complete Javadoc documentation for the HeaderFormatter utility class

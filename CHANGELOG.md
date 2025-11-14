@@ -10,7 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Header logging functionality for both incoming and outgoing messages
 - New configuration options: `amqpex.logging.incoming.log-headers` and `amqpex.logging.outgoing.log-headers` to control header logging
+- Comprehensive array formatting tests for all primitive types in header formatter
+- Deep nesting tests with proper truncation when exceeding max depth
+- Javadoc documentation for all test methods
 - Updated documentation to reflect new header logging functionality
+
+### Changed
+- Reduced max recursion depth from 10 to 5 in header formatter for better safety
+- Removed escaping functionality from header formatter for simplicity (will add back in future release if needed)
+- Removed all inline comments inside method bodies for cleaner code
+- Added proper Javadoc to all test method
 
 ## [0.0.1] - 2025-11-10
 

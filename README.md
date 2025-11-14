@@ -28,7 +28,7 @@ This library provides useful extensions and enhancements for Spring AMQP, aiming
 
 ### Adding the Dependency
 
-The library will be available through Maven Central once published. (Publication process coming soon)
+The library is currently available as a local build. Publication to Maven Central is planned for the next release.
 
 ### Basic Configuration
 

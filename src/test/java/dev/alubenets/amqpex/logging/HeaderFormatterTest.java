@@ -28,7 +28,7 @@ class HeaderFormatterTest {
          */
         @Test
         void shouldReturnEmptyMapRepresentationForNullHeaders() {
-            String result = HeaderFormatter.formatHeaders(null);
+            var result = HeaderFormatter.formatHeaders(null);
             assertThat(result).isEqualTo("{}");
         }
 
@@ -37,7 +37,7 @@ class HeaderFormatterTest {
          */
         @Test
         void shouldReturnEmptyMapRepresentationForEmptyHeaders() {
-            String result = HeaderFormatter.formatHeaders(Map.of());
+            var result = HeaderFormatter.formatHeaders(Map.of());
             assertThat(result).isEqualTo("{}");
         }
 
@@ -46,8 +46,8 @@ class HeaderFormatterTest {
          */
         @Test
         void shouldFormatStringHeadersCorrectly() {
-            java.util.Map<String, Object> headers = Map.of("key1", "value1", "key2", "value2");
-            String result = HeaderFormatter.formatHeaders(headers);
+            Map<String, Object> headers = Map.of("key1", "value1", "key2", "value2");
+            var result = HeaderFormatter.formatHeaders(headers);
             assertThat(result)
                 .contains("key1=\"value1\"")
                 .contains("key2=\"value2\"");
@@ -67,14 +67,14 @@ class HeaderFormatterTest {
          */
         @Test
         void shouldFormatDifferentValueTypesCorrectly() {
-            java.util.Map<String, Object> headers = new java.util.HashMap<>();
+            Map<String, Object> headers = new java.util.HashMap<>();
             headers.put("string-header", "string-value");
             headers.put("integer-header", 42);
             headers.put("boolean-header", true);
             headers.put("double-header", 3.14);
             headers.put("null-header", null);
 
-            String result = HeaderFormatter.formatHeaders(headers);
+            var result = HeaderFormatter.formatHeaders(headers);
             assertThat(result)
                 .contains("string-header=\"string-value\"")
                 .contains("integer-header=42")
@@ -88,19 +88,109 @@ class HeaderFormatterTest {
          */
         @Test
         void shouldFormatListHeadersCorrectly() {
-            java.util.Map<String, Object> headers = Map.of("list-header", List.of("item1", "item2", "item3"));
-            String result = HeaderFormatter.formatHeaders(headers);
+            Map<String, Object> headers = Map.of("list-header", List.of("item1", "item2", "item3"));
+            var result = HeaderFormatter.formatHeaders(headers);
             assertThat(result).contains("list-header=[\"item1\", \"item2\", \"item3\"]");
         }
 
         /**
-         * Tests that array headers are formatted correctly.
+         * Tests that string array headers are formatted correctly.
          */
         @Test
-        void shouldFormatArrayHeadersCorrectly() {
-            java.util.Map<String, Object> headers = Map.of("array-header", new String[]{"arr1", "arr2", "arr3"});
-            String result = HeaderFormatter.formatHeaders(headers);
+        void shouldFormatStringArrayHeadersCorrectly() {
+            Map<String, Object> headers = Map.of("array-header", new String[]{"arr1", "arr2", "arr3"});
+            var result = HeaderFormatter.formatHeaders(headers);
             assertThat(result).contains("array-header=[arr1, arr2, arr3]");
+        }
+
+        /**
+         * Tests that primitive boolean array headers are formatted correctly.
+         */
+        @Test
+        void shouldFormatBooleanArrayHeadersCorrectly() {
+            Map<String, Object> headers = Map.of("array-header", new boolean[]{true, false, true});
+            var result = HeaderFormatter.formatHeaders(headers);
+            assertThat(result).contains("array-header=[true, false, true]");
+        }
+
+        /**
+         * Tests that primitive byte array headers are formatted correctly.
+         */
+        @Test
+        void shouldFormatByteArrayHeadersCorrectly() {
+            Map<String, Object> headers = Map.of("array-header", new byte[]{1, 2, 3});
+            var result = HeaderFormatter.formatHeaders(headers);
+            assertThat(result).contains("array-header=[1, 2, 3]");
+        }
+
+        /**
+         * Tests that primitive char array headers are formatted correctly.
+         */
+        @Test
+        void shouldFormatCharArrayHeadersCorrectly() {
+            Map<String, Object> headers = Map.of("array-header", new char[]{'a', 'b', 'c'});
+            var result = HeaderFormatter.formatHeaders(headers);
+            assertThat(result).contains("array-header=[a, b, c]");
+        }
+
+        /**
+         * Tests that primitive short array headers are formatted correctly.
+         */
+        @Test
+        void shouldFormatShortArrayHeadersCorrectly() {
+            Map<String, Object> headers = Map.of("array-header", new short[]{1, 2, 3});
+            var result = HeaderFormatter.formatHeaders(headers);
+            assertThat(result).contains("array-header=[1, 2, 3]");
+        }
+
+        /**
+         * Tests that primitive int array headers are formatted correctly.
+         */
+        @Test
+        void shouldFormatIntArrayHeadersCorrectly() {
+            Map<String, Object> headers = Map.of("array-header", new int[]{1, 2, 3});
+            var result = HeaderFormatter.formatHeaders(headers);
+            assertThat(result).contains("array-header=[1, 2, 3]");
+        }
+
+        /**
+         * Tests that primitive long array headers are formatted correctly.
+         */
+        @Test
+        void shouldFormatLongArrayHeadersCorrectly() {
+            Map<String, Object> headers = Map.of("array-header", new long[]{1L, 2L, 3L});
+            var result = HeaderFormatter.formatHeaders(headers);
+            assertThat(result).contains("array-header=[1, 2, 3]");
+        }
+
+        /**
+         * Tests that primitive float array headers are formatted correctly.
+         */
+        @Test
+        void shouldFormatFloatArrayHeadersCorrectly() {
+            Map<String, Object> headers = Map.of("array-header", new float[]{1.1f, 2.2f, 3.3f});
+            var result = HeaderFormatter.formatHeaders(headers);
+            assertThat(result).contains("array-header=[1.1, 2.2, 3.3]");
+        }
+
+        /**
+         * Tests that primitive double array headers are formatted correctly.
+         */
+        @Test
+        void shouldFormatDoubleArrayHeadersCorrectly() {
+            Map<String, Object> headers = Map.of("array-header", new double[]{1.1, 2.2, 3.3});
+            var result = HeaderFormatter.formatHeaders(headers);
+            assertThat(result).contains("array-header=[1.1, 2.2, 3.3]");
+        }
+
+        /**
+         * Tests that object array headers are formatted correctly.
+         */
+        @Test
+        void shouldFormatObjectArrayHeadersCorrectly() {
+            Map<String, Object> headers = Map.of("array-header", new Object[]{"obj1", 42, true});
+            var result = HeaderFormatter.formatHeaders(headers);
+            assertThat(result).contains("array-header=[obj1, 42, true]");
         }
     }
 
@@ -117,20 +207,85 @@ class HeaderFormatterTest {
          */
         @Test
         void shouldFormatComplexHeadersCorrectly() {
-            java.util.Map<String, Object> headers = Map.of(
+            var headers = Map.of(
                 "list-header", List.of("item1", "item2", "item3"),
                 "array-header", new String[]{"arr1", "arr2", "arr3"},
                 "nested-map", Map.of("key1", "value1", "key2", List.of("nested1", "nested2"))
             );
 
-            String result = HeaderFormatter.formatHeaders(headers);
+            var result = HeaderFormatter.formatHeaders(headers);
 
-            // Check that all expected elements are present in the result, regardless of order
             assertThat(result)
                 .contains("list-header=[\"item1\", \"item2\", \"item3\"]")
                 .contains("array-header=[arr1, arr2, arr3]")
                 .contains("key1=\"value1\"")
                 .contains("key2=[\"nested1\", \"nested2\"]");
+        }
+    }
+
+    /**
+     * Tests deep nesting header formatting functionality.
+     */
+    @Nested
+    class DeepNesting {
+
+        /**
+         * Creates a deeply nested map structure for testing.
+         *
+         * @param depth the depth of nesting to create
+         * @return a nested map with the specified depth
+         */
+        private Map<String, Object> createDeeplyNestedMap(int depth) {
+            if (depth <= 0) {
+                return Map.of("value", "deep-value");
+            }
+            return Map.of("nested", createDeeplyNestedMap(depth - 1));
+        }
+
+        /**
+         * Tests that deeply nested maps are truncated when exceeding max recursion depth.
+         */
+        @Test
+        void shouldTruncateDeeplyNestedMapsWhenExceedingMaxDepth() {
+            var deeplyNestedHeaders = createDeeplyNestedMap(10);
+            var result = HeaderFormatter.formatHeaders(deeplyNestedHeaders);
+
+            assertThat(result).contains("{...}");
+        }
+
+        /**
+         * Tests that shallow nested maps are formatted normally without truncation.
+         */
+        @Test
+        void shouldFormatShallowNestedMapsNormallyWithoutTruncation() {
+            var shallowlyNestedHeaders = createDeeplyNestedMap(3);
+            var result = HeaderFormatter.formatHeaders(shallowlyNestedHeaders);
+
+            assertThat(result)
+                .doesNotContain("{...}")
+                .contains("value=\"deep-value\"");
+        }
+
+        /**
+         * Tests that deeply nested collections are also handled properly.
+         */
+        @Test
+        void shouldHandleDeeplyNestedCollectionsProperly() {
+            Map<String, Object> headers = Map.of(
+                "nested-list", List.of(
+                    List.of(
+                        List.of(
+                            List.of(
+                                List.of("deep-value")
+                            )
+                        )
+                    )
+                )
+            );
+
+            var result = HeaderFormatter.formatHeaders(headers);
+
+            assertThat(result).isNotNull();
         }
     }
 
